@@ -3,7 +3,7 @@ export interface EnvironmentDescriptor {
   label: string;
   platform: string;
   version: string;
-  capabilities: { remoteSessions: true; selfUpdate: "desktop-managed" | "operator"; emailSignIn?: boolean; sharedComputers?: true; cloudHome?: true };
+  capabilities: { remoteSessions: true; selfUpdate: "desktop-managed" | "operator"; emailSignIn?: boolean; passwordSignIn?: true; sharedComputers?: true; cloudHome?: true };
 }
 
 /** A Team Cloud's session: the team and this person's role in it (owner, admin or member). */
@@ -165,6 +165,10 @@ export function startEmailSignIn(email: string, fetchImpl: typeof fetch = fetch)
 
 export function verifyEmailSignIn(input: { email: string; code: string; label: string }, fetchImpl: typeof fetch = fetch): Promise<{ ok: true } | { ok: false; error: string }> {
   return postAuth("/api/auth/email/verify", { email: input.email, code: input.code, label: input.label }, fetchImpl);
+}
+
+export function signInWithPassword(input: { password: string; label: string }, fetchImpl: typeof fetch = fetch): Promise<{ ok: true } | { ok: false; error: string }> {
+  return postAuth("/api/auth/password", { password: input.password, label: input.label }, fetchImpl);
 }
 
 export function reasonWorthShowing(reason: string | undefined): string | null {

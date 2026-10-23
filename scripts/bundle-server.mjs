@@ -37,6 +37,8 @@ const ENTRY_POINTS = [
   "workspace-backup.worker.ts",
   // the OMB Cloud Pro home image's entry point
   "cloud-home-start.ts",
+  // the Railway image's entry point (deploy/railway)
+  "railway-start.ts",
   // the container image's entry point
   "server-launcher.ts",
   // Imported directly by the packaged smoke probes. An explicit root sibling,

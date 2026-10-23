@@ -8,6 +8,7 @@ import {
   pairWithCode,
   readSessionState,
   reasonWorthShowing,
+  signInWithPassword,
   startEmailSignIn,
   verifyEmailSignIn,
   type EnvironmentDescriptor,
@@ -24,7 +25,10 @@ export function pairsAutomatically(initialCode: string | null, desktop = typeof 
   return Boolean(initialCode) && desktop;
 }
 
-export function pairIntro({ mode, sent, email, cloudHome }: { mode: "email" | "code" | null; sent: boolean; email: string; cloudHome: boolean }): string {
+type SignInMode = "password" | "email" | "code";
+
+export function pairIntro({ mode, sent, email, cloudHome }: { mode: SignInMode | null; sent: boolean; email: string; cloudHome: boolean }): string {
+  if (mode === "password") return "Enter the administrator password set for this server.";
   if (mode === "email") return sent ? `We emailed an 8-digit code to ${email}. It works once and expires in ten minutes.` : "Enter your email and we will send you a one-time code.";
   if (cloudHome) return "To open the Cloud, choose Open the Cloud in the OpenMausBot app on your computer (Settings → MausBot Cloud), or Use in your browser on your Plan page. Have a pairing code? Enter it below.";
   return "Enter the pairing code shown on the server. Codes work once and expire after five minutes.";
@@ -38,7 +42,8 @@ export function PairPage({ initialCode, initialEmail = null, reason }: { initial
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [attemptId, setAttemptId] = useState(() => newAttemptId());
-  const [mode, setMode] = useState<"email" | "code" | null>(initialCode ? "code" : null);
+  const [mode, setMode] = useState<SignInMode | null>(initialCode ? "code" : null);
+  const [password, setPassword] = useState("");
   const [email, setEmail] = useState(initialEmail ?? "");
   const [otp, setOtp] = useState("");
   const [sent, setSent] = useState(false);
@@ -62,7 +67,7 @@ export function PairPage({ initialCode, initialEmail = null, reason }: { initial
       .then((r) => (r.ok ? r.json() : null))
       .then((d: EnvironmentDescriptor | null) => {
         setEnvironment(d);
-        setMode((current) => current ?? (d?.capabilities.emailSignIn ? "email" : "code"));
+        setMode((current) => current ?? (d?.capabilities.passwordSignIn ? "password" : d?.capabilities.emailSignIn ? "email" : "code"));
       })
       .catch(() => {
         setEnvironment(null);
@@ -73,6 +78,7 @@ export function PairPage({ initialCode, initialEmail = null, reason }: { initial
 
   const connected = isConnected(session);
   const emailOffered = environment?.capabilities.emailSignIn === true;
+  const passwordOffered = environment?.capabilities.passwordSignIn === true;
   const cloudHome = environment?.capabilities.cloudHome === true;
 
   async function submitCode(e: React.FormEvent) {
@@ -105,7 +111,21 @@ export function PairPage({ initialCode, initialEmail = null, reason }: { initial
     setSent(true);
   }
 
-  function switchMode(next: "email" | "code") {
+  async function submitPassword(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    const result = await signInWithPassword({ password, label });
+    setBusy(false);
+    if (result.ok) {
+      location.replace(pairedDestination(location.search));
+      return;
+    }
+    setPassword("");
+    setError(result.error);
+  }
+
+  function switchMode(next: SignInMode) {
     setMode(next);
     setError(null);
   }
@@ -117,7 +137,7 @@ export function PairPage({ initialCode, initialEmail = null, reason }: { initial
         {opening ? (
           <p role="status" className="text-[20px] font-semibold">{cloudHome ? "Opening the Cloud…" : `Connecting to ${environment?.label ?? "this OpenMausBot"}…`}</p>
         ) : <>
-        <h1 className="text-[20px] font-semibold">{cloudHome ? "My Cloud" : `${mode === "email" ? "Sign in to" : "Connect to"} ${environment?.label ?? "this OpenMausBot"}`}</h1>
+        <h1 className="text-[20px] font-semibold">{cloudHome ? "My Cloud" : `${mode === "code" ? "Connect to" : "Sign in to"} ${environment?.label ?? "this OpenMausBot"}`}</h1>
         <p className="mt-1.5 text-[13.5px] leading-relaxed text-ink-secondary">
           {environment && !cloudHome ? `Version ${environment.version} on ${environment.platform}. ` : ""}
           {pairIntro({ mode, sent, email, cloudHome })}
@@ -132,6 +152,32 @@ export function PairPage({ initialCode, initialEmail = null, reason }: { initial
               Open the app
             </a>
           </p>
+        ) : mode === "password" ? (
+          <form onSubmit={submitPassword}>
+            <label className={fieldLabel} htmlFor="signin-password">
+              Password
+            </label>
+            <input
+              id="signin-password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              autoFocus
+              className={input}
+            />
+            <label className={fieldLabel} htmlFor="signin-password-label">
+              This device
+            </label>
+            <input id="signin-password-label" value={label} onChange={(e) => setLabel(e.target.value)} maxLength={80} className={input} />
+            {error ? <p className="mt-3 text-[13px] text-danger">{error}</p> : null}
+            <button type="submit" disabled={busy || !password} className={button}>
+              {busy ? "Signing in…" : "Sign in"}
+            </button>
+            <button type="button" onClick={() => switchMode("code")} className="mt-3 w-full text-[13px] text-ink-secondary underline">
+              Have a pairing code instead?
+            </button>
+          </form>
         ) : mode === "email" ? (
           <form onSubmit={submitEmail}>
             <label className={fieldLabel} htmlFor="signin-email">
@@ -211,6 +257,11 @@ export function PairPage({ initialCode, initialEmail = null, reason }: { initial
             <button type="submit" disabled={busy || code.replace(/[^a-z0-9]/gi, "").length < 12} className={button}>
               {busy ? "Connecting…" : "Connect"}
             </button>
+            {passwordOffered ? (
+              <button type="button" onClick={() => switchMode("password")} className="mt-3 w-full text-[13px] text-ink-secondary underline">
+                Sign in with the password instead
+              </button>
+            ) : null}
             {emailOffered ? (
               <button type="button" onClick={() => switchMode("email")} className="mt-3 w-full text-[13px] text-ink-secondary underline">
                 Sign in with your email instead

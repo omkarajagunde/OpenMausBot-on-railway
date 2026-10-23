@@ -46,7 +46,7 @@ and the account selected in OMB; never request the user's keys or tokens.
 ## ACP internal-error recovery
 
 ```sh
-pnpm exec vitest run server/drivers/acp/acp.test.ts server/acp-recovery.e2e.test.ts server/resume-recovery.test.ts server/delta-context.test.ts server/incidents.e2e.test.ts server/room-coordination.e2e.test.ts
+pnpm exec vitest run server/acp-recovery.e2e.test.ts server/resume-recovery.test.ts server/delta-context.test.ts server/incidents.e2e.test.ts server/room-coordination.e2e.test.ts
 ```
 
 The ACP transport fixture injects an internal RPC error, including one after
@@ -71,7 +71,7 @@ persistently invalid account or provider configuration.
 ## Regression checks
 
 ```sh
-pnpm exec vitest run server/drivers/acp/acp.test.ts server/drivers/claude.test.ts server/drivers/claude-auth.test.ts server/drivers/codex.test.ts server/drivers/retry.test.ts server/store.test.ts src/components/ChatView.controls.test.ts
+pnpm exec vitest run server/drivers/claude.test.ts server/drivers/claude-auth.test.ts server/drivers/retry.test.ts server/store.test.ts src/components/ChatView.controls.test.ts
 pnpm typecheck
 pnpm lint
 ```

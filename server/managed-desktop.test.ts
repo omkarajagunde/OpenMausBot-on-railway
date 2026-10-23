@@ -1,4 +1,4 @@
-import { chmodSync, existsSync, mkdirSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { randomBytes, randomUUID } from "node:crypto";
 import { afterEach, expect, it, vi } from "vitest";
@@ -6,12 +6,10 @@ import { companyInstanceConfigs, companyInstanceId, legacyCompanyInstanceId, LIC
 import { ProviderRegistry } from "./harness/registry.ts";
 import { makeFakeDriver } from "./testing/fake-driver.ts";
 import { DATA_DIR, instanceConfigs, loadConfig, persistableInstanceConfigs, saveConfig } from "./config.ts";
-import { CodexDriver, managedCodexArgs } from "./drivers/codex.ts";
 import { ClaudeDriver } from "./drivers/claude.ts";
 import { recordEvents } from "./testing/events.ts";
 import { redactSecretsInText } from "./redact.ts";
 import { excludedWorkspaceAuthPath } from "./workspace-backup-policy.ts";
-import type { ProviderInstance } from "./contracts.ts";
 import { selectDefaultModelSelection } from "./default-model-selection.ts";
 import { Store } from "./store.ts";
 
@@ -41,7 +39,7 @@ it("adds Company instances without mutating personal/global configuration or per
   expect(registry.get("personal")).toBe(personal); expect(registry.get("local")).toBe(local);
   expect(readFileSync(join(DATA_DIR, "config.json"), "utf8")).toBe(persisted);
   expect(JSON.stringify(instanceConfigs(cfg))).not.toContain(value.token);
-  expect(Object.keys(persistableInstanceConfigs(loadConfig()))).toEqual(["personal", "local"]);
+  expect(Object.keys(persistableInstanceConfigs(loadConfig()))).toEqual(["personal"]);
   for (const provider of value.providers) {
     const id = companyInstanceId(value, provider.id), company = registry.get(id)!;
     expect(company.displayName).toContain("Company · Fixture Agency");
@@ -226,31 +224,6 @@ it("rejects invalid origins, expired tokens, provider collisions and local model
   expect(redactSecretsInText(`A provider echoed omd_${"A".repeat(42)}- here.`)).not.toContain("omd_");
   expect(redactSecretsInText(`A provider echoed omg_${"A".repeat(42)}- here.`)).not.toContain("omg_");
   expect(companyInstanceId(value, "openai")).not.toBe(companyInstanceId({ ...value, email: "colleague@example.test" }, "openai"));
-});
-
-it("runs native Codex with Company Responses routing, isolated home and no OAuth or argv credential fallback", async () => {
-  const value = connection(), cli = join(import.meta.dirname, "testing", "fake-codex-app-server.ts");
-  chmodSync(cli, 0o755); mkdirSync(DATA_DIR, { recursive: true });
-  const dump = join(DATA_DIR, "company-codex-dump.json"), isolatedHome = join(DATA_DIR, "company-codex-home");
-  mkdirSync(isolatedHome, { recursive: true });
-  const config = CodexDriver.decodeConfig({ cli, managed: { url: `${value.portalOrigin}/api/desktop/gateway/openai/v1`, models: ["gpt-fixture"] } });
-  let native: ProviderInstance | undefined;
-  try {
-    native = await CodexDriver.create({ instanceId: "fixture-company-codex", displayName: "Company", enabled: true, config,
-      environment: { CODEX_HOME: isolatedHome, OPENMAUSBOT_COMPANY_API_KEY: value.token, OPENAI_API_KEY: "personal-must-not-leak", FAKE_CODEX_DUMP: dump, FAKE_CODEX_MODE: "logged-out" } });
-    expect(await native.snapshot()).toMatchObject({ state: "available", authenticated: true, billing: "metered" });
-    const events = recordEvents(native.adapter);
-    await native.adapter.sendTurn({ threadId: "company-codex-fixture", text: "Fixture request", model: "gpt-fixture" });
-    await events.until(event => event.type === "turn.completed"); events.stop();
-    const spawned = JSON.parse(readFileSync(dump, "utf8"));
-    expect(spawned.env.CODEX_HOME).toBe(isolatedHome);
-    expect(spawned.env.OPENMAUSBOT_COMPANY_API_KEY).toBe(value.token);
-    expect(spawned.env.OPENAI_API_KEY).toBeUndefined();
-    expect(spawned.argv).toEqual(expect.arrayContaining(managedCodexArgs(config.managed!)));
-    expect(JSON.stringify(spawned.argv)).not.toContain(value.token);
-    expect(spawned.calls.find((call: { method: string }) => call.method === "thread/start").params).toMatchObject({ model: "gpt-fixture", modelProvider: "openmaus_company" });
-    await expect(native.adapter.sendTurn({ threadId: "blocked", text: "No fallback", model: "gpt-personal" })).rejects.toThrow("personal billing");
-  } finally { await native?.dispose(); }
 });
 
 it("applies a renewal or a lapsed licence in place, without restarting or ending Company conversations", async () => {

@@ -5,8 +5,6 @@ import { afterEach, expect, it, vi } from "vitest";
 import { hostedModelPolicy } from "./hosted-models.ts";
 import { ProviderRegistry } from "./harness/registry.ts";
 import { ClaudeDriver } from "./drivers/claude.ts";
-import { CodexDriver } from "./drivers/codex.ts";
-import { OpenAICompatDriver } from "./drivers/openai-compat.ts";
 import { recordEvents } from "./testing/events.ts";
 import { removeTempDir } from "./testing/cleanup.ts";
 
@@ -51,29 +49,6 @@ it.each([{ variant: "high" }, { effort: "high" as const }])("preserves an assign
   expect(selection).toEqual({ instanceId: "opencode", model: "provider/fixture" });
   expect(policy.allows(selection)).toBe(true);
   expect(policy.select(selection)).toEqual(selection);
-});
-
-it("locks native and OpenRouter instances to assigned catalogs and fixed gateway routes", async () => {
-  const root = directory(), policy = hostedModelPolicy(root, { ...env(),
-    OMB_HOSTED_CLAUDE_CLI: join(import.meta.dirname, "testing/fake-claude-cli.ts"),
-    OMB_HOSTED_CODEX_CLI: join(import.meta.dirname, "testing/fake-codex-app-server.ts"),
-  })!;
-  const configs = policy.configs();
-  expect(Object.keys(configs)).toEqual(["claude", "codex", "opencode"]);
-  expect(configs.claude.environment).toMatchObject({ ANTHROPIC_BASE_URL: "https://admin.example.test/api/gateway/fixture/anthropic", ANTHROPIC_DEFAULT_HAIKU_MODEL: "claude-fixture" });
-  expect(configs.codex.environment).toEqual({ OPENMAUSBOT_COMPANY_API_KEY: token, CODEX_HOME: join(root, "providers/hosted/codex") });
-  expect(configs.codex.config).toMatchObject({ managed: { models: ["gpt-fixture"], url: "https://admin.example.test/api/gateway/fixture/openai/v1" } });
-  const fetcher = vi.fn(); vi.stubGlobal("fetch", fetcher);
-  const registry = new ProviderRegistry([ClaudeDriver, CodexDriver, OpenAICompatDriver], { npmAvailable: () => false }); registries.push(registry);
-  await registry.load(configs, instance => policy.decorate(instance));
-  for (const [id, model] of [["claude", "claude-fixture"], ["codex", "gpt-fixture"], ["opencode", "provider/fixture"]]) {
-    const instance = registry.get(id)!;
-    expect(instance.models.options.map(row => row.id)).toEqual([model]);
-    expect(instance.startAuthentication).toBeUndefined();
-    await expect(instance.adapter.sendTurn({ threadId: "forbidden", text: "Synthetic", model: "unassigned" })).rejects.toThrow("not assigned");
-    await instance.refreshModels?.();
-  }
-  expect(fetcher).not.toHaveBeenCalled();
 });
 
 it("uses bundled executable names unless the operator explicitly overrides them", () => {

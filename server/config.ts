@@ -717,25 +717,8 @@ export function llmThreadTitlesEnabled(cfg: AppConfig): boolean {
 }
 
 
-export function engineLaunches(configs: InstanceConfigMap, env: Record<string, string | undefined> = process.env): Record<string, unknown> {
-  return Object.fromEntries(Object.entries(configs).map(([id, entry]) =>
-    [id, { ...entry, fallbackEnv: Object.fromEntries(fallbackEnv(entry).map((name) => [name, env[name]])) }]));
-}
-
-function fallbackEnv(entry: InstanceConfigMap[string]): string[] {
-  const config = typeof entry.config === "object" && entry.config !== null && !Array.isArray(entry.config)
-    ? entry.config as { apiKeyEnv?: unknown } : {};
-  const named = typeof config.apiKeyEnv === "string" && config.apiKeyEnv ? config.apiKeyEnv : undefined;
-  switch (entry.driver) {
-    case "mistral": return ["MISTRAL_API_KEY"];
-    case "cerebras": return ["CEREBRAS_API_KEY"];
-    case "grok": return [named ?? "XAI_API_KEY"];
-    case "openai-compat":
-      return named && Object.values(API_KEY_FLEET).some((own) => (own.config as { apiKeyEnv?: string } | undefined)?.apiKeyEnv === named)
-        ? [named]
-        : [...new Set([named ?? "OPENAI_COMPAT_API_KEY", "OPENAI_COMPAT_API_KEY", "OPENAI_COMPAT_URL", "OPENAI_COMPAT_MODEL", "OPENAI_COMPAT_PROVIDER"])];
-    default: return [];
-  }
+export function engineLaunches(configs: InstanceConfigMap): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(configs).map(([id, entry]) => [id, { ...entry, fallbackEnv: {} }]));
 }
 
 export function changedInstanceIds(before: Record<string, unknown>, after: Record<string, unknown>): string[] {
@@ -1213,193 +1196,42 @@ export function claudeInstanceOwnsRouting(environment: Record<string, string> | 
   return CLAUDE_ROUTING_ENV.some((key) => typeof environment?.[key] === "string" && environment[key] !== "");
 }
 
-const sameUrl = (a: string, b: string) => a.trim().replace(/\/+$/u, "") === b.trim().replace(/\/+$/u, "");
-
 /** An instance with its own endpoint or credential never gets the workspace key, which would go to its host. */
-export function instanceOwnsRouting(
-  cfg: AppConfig,
-  entry: { driver: string; config?: unknown; environment?: Record<string, string> },
-  routingDefaults?: { url?: string; apiKeyEnv?: string },
-): boolean {
-  const config = typeof entry.config === "object" && entry.config !== null && !Array.isArray(entry.config)
-    ? entry.config as Record<string, unknown>
-    : {};
-  const own = (value: unknown) => typeof value === "string" && value.trim() !== "";
-  const ownUrl = (...workspace: Array<string | undefined>) => own(config.url)
-    && !workspace.some((url) => url !== undefined && sameUrl(config.url as string, url));
-  const compatKeyEnv = routingDefaults?.apiKeyEnv ?? "OPENAI_COMPAT_API_KEY";
-  switch (entry.driver) {
-    case "claudeAgent":
-      return claudeInstanceOwnsRouting(entry.environment);
-    case "openai-compat":
-      return own(config.key) || own(entry.environment?.OPENAI_COMPAT_API_KEY)
-        || own(entry.environment?.[compatKeyEnv])
-        || (own(config.apiKeyEnv) && config.apiKeyEnv !== compatKeyEnv)
-        || ownUrl(routingDefaults?.url || cfg.openaiCompat?.url || process.env.OPENAI_COMPAT_URL || "https://openrouter.ai/api/v1");
-    case "mistral":
-      return own(entry.environment?.MISTRAL_API_KEY) || ownUrl("https://api.mistral.ai/v1");
-    case "cerebras":
-      return own(entry.environment?.CEREBRAS_API_KEY) || ownUrl("https://api.cerebras.ai/v1");
-    case "groq":
-      return own(entry.environment?.GROQ_API_KEY) || ownUrl("https://api.groq.com/openai/v1", cfg.groq?.url);
-    case "meta":
-      return own(entry.environment?.META_API_KEY) || ownUrl("https://api.meta.ai/v1", cfg.meta?.url);
-    case "grok":
-      return own(entry.environment?.XAI_API_KEY) || (own(config.apiKeyEnv) && config.apiKeyEnv !== "XAI_API_KEY")
-        || ownUrl("https://api.x.ai/v1", cfg.xai?.url);
-    default:
-      return false;
-  }
+export function instanceOwnsRouting(entry: { driver: string; environment?: Record<string, string> }): boolean {
+  return entry.driver === "claudeAgent" && claudeInstanceOwnsRouting(entry.environment);
 }
 
 /** Each secret goes only to the driver that reads it; the Boat token reaches no engine. */
 function injectedEnvironment(cfg: AppConfig, instanceId: string, driver: string): Map<string, string> {
   const environment = new Map<string, string>();
-  if (driver === "mistral" && cfg.mistral?.key) environment.set("MISTRAL_API_KEY", cfg.mistral.key);
-  if (driver === "cerebras" && cfg.cerebras?.key) environment.set("CEREBRAS_API_KEY", cfg.cerebras.key);
-  if (driver === "groq" && cfg.groq?.key) environment.set("GROQ_API_KEY", cfg.groq.key);
-  if (driver === "meta" && cfg.meta?.key) environment.set("META_API_KEY", cfg.meta.key);
-  if (driver === "grok" && cfg.xai?.key) environment.set("XAI_API_KEY", cfg.xai.key);
   if (driver === "claudeAgent") for (const [name, value] of Object.entries(anthropicKeyEnv(cfg.anthropic, instanceId === CLAUDE_API_INSTANCE))) environment.set(name, value);
-  if (driver === "openai-compat" && instanceId === OPENAI_API_INSTANCE) {
-    if (cfg.openai?.key) environment.set("OMB_OPENAI_API_KEY", cfg.openai.key);
-  } else if (driver === "openai-compat" && instanceId === OPENROUTER_API_INSTANCE) {
-    if (cfg.openrouter?.key) environment.set("OMB_OPENROUTER_API_KEY", cfg.openrouter.key);
-  } else {
-    if (driver === "openai-compat" && cfg.openaiCompat?.key)
-      environment.set("OPENAI_COMPAT_API_KEY", cfg.openaiCompat.key);
-    if (driver === "openai-compat" && cfg.openaiCompat?.url)
-      environment.set("OPENAI_COMPAT_URL", cfg.openaiCompat.url);
-  }
-  if (driver === "opencodeGo") {
-    for (const [name, key] of Object.entries(openCodeProviderKeys(cfg))) environment.set(name, key);
-    if (cfg.opencodeGo?.apiKey) environment.set("OPENCODE_API_KEY", cfg.opencodeGo.apiKey);
-  }
   return environment;
 }
 
-export const OPENAI_API_INSTANCE = "openai";
-export const OPENROUTER_API_INSTANCE = "openrouter";
-export const XAI_API_INSTANCE = "xaiApi";
 export const CLAUDE_API_INSTANCE = "claudeApi";
-const API_KEY_FLEET: InstanceConfigMap = {
-  [OPENAI_API_INSTANCE]: {
-    driver: "openai-compat", displayName: "OpenAI", access: "api", icon: { kind: "preset", preset: "openai" },
-    config: { url: "https://api.openai.com/v1", apiKeyEnv: "OMB_OPENAI_API_KEY", catalog: "openai" },
-  },
+const DEFAULT_FLEET: InstanceConfigMap = {
+  claude: { driver: "claudeAgent" },
   [CLAUDE_API_INSTANCE]: {
     driver: "claudeAgent", displayName: "Claude (API key)", access: "api", icon: { kind: "preset", preset: "anthropic" },
     config: { requireApiKey: true },
   },
-  [XAI_API_INSTANCE]: { driver: "grok", displayName: "xAI", access: "api", icon: { kind: "preset", preset: "xai" } },
-  [OPENROUTER_API_INSTANCE]: {
-    driver: "openai-compat", displayName: "OpenRouter", access: "api", icon: { kind: "preset", preset: "openrouter" },
-    config: { url: "https://openrouter.ai/api/v1", apiKeyEnv: "OMB_OPENROUTER_API_KEY" },
-  },
 };
 
+/** Claude Code is the only engine: saved instances for any other driver are dropped. */
 export function instanceConfigs(cfg: AppConfig): InstanceConfigMap {
-  // Google retired Gemini CLI for the free/Pro/Ultra tiers on 2026-06-18; enterprise licences restore it with
-  // `{"instances": {"gemini": {"driver": "geminiAgent"}}}`.
-  const DEFAULT_FLEET: InstanceConfigMap = {
-    grok: { driver: "grokAgent" },
-    kimi: { driver: "kimiAgent" },
-    droid: { driver: "droidAgent" },
-    cursor: { driver: "cursorAgent" },
-    claude: { driver: "claudeAgent" },
-    codex: { driver: "codex" },
-    chatgpt: { driver: "codex", displayName: "ChatGPT plan", config: { authMode: "chatgpt-plan" } },
-    antigravity: { driver: "antigravityAgent" },
-    opencodeGo: { driver: "opencodeGo" },
-    openaiCompat: { driver: "openai-compat" },
-    mistral: { driver: "mistral" },
-    cerebras: { driver: "cerebras" },
-    groq: { driver: "groq" },
-    meta: { driver: "meta" },
-    museCode: { driver: "museCode" },
-    ...API_KEY_FLEET,
-    qwen: { driver: "qwenAgent" },
-    hermes: { driver: "hermesAgent" },
-    cline: { driver: "clineAgent" },
-    pi: { driver: "piAgent" },
-  };
-  const CUSTOM_ONLY = {
-    qwen: { driver: "qwenAgent" },
-    hermes: { driver: "hermesAgent" },
-    cline: { driver: "clineAgent" },
-    pi: { driver: "piAgent" },
-  } as const;
-  const PRODUCT_FLEET_ADDITIONS = {
-    chatgpt: { driver: "codex", displayName: "ChatGPT plan", config: { authMode: "chatgpt-plan" } },
-    cursor: { driver: "cursorAgent" },
-    openaiCompat: { driver: "openai-compat" },
-    mistral: { driver: "mistral" },
-    cerebras: { driver: "cerebras" },
-    groq: { driver: "groq" },
-    meta: { driver: "meta" },
-    museCode: { driver: "museCode" },
-    ...API_KEY_FLEET,
-    ...CUSTOM_ONLY,
-  } as const;
-  const configured = cfg.instances && Object.keys(cfg.instances).length ? cfg.instances : null;
-  const map: InstanceConfigMap = withoutComputerEngine(configured ? { ...configured } : { ...DEFAULT_FLEET });
-  if (
-    configured &&
-    (Object.hasOwn(configured, "claude") || Object.hasOwn(configured, "grok") || Object.hasOwn(configured, "codex"))
-  ) {
-    for (const [id, entry] of Object.entries(PRODUCT_FLEET_ADDITIONS)) {
-      if (!Object.hasOwn(map, id)) map[id] = { ...entry };
-    }
-  }
-  // Re-applied on every load so the openai/openrouter instances never fall back to the shared key and URL.
-  for (const [id, builtIn] of Object.entries(API_KEY_FLEET)) {
-    const saved = map[id];
-    if (!saved || saved.driver !== builtIn.driver) continue;
-    const savedConfig = typeof saved.config === "object" && saved.config !== null && !Array.isArray(saved.config) ? saved.config : {};
-    map[id] = { ...builtIn, ...saved, config: { ...(builtIn.config as object | undefined), ...savedConfig } };
-  }
-  if (map.chatgpt?.driver === "codex" && !(map.chatgpt.config as { cli?: unknown } | undefined)?.cli) {
-    const cli = (map.codex?.config as { cli?: unknown } | undefined)?.cli;
-    if (typeof cli === "string" && cli) map.chatgpt = { ...map.chatgpt, config: { ...map.chatgpt.config as object, cli } };
-  }
+  const configured = Object.fromEntries(Object.entries(cfg.instances ?? {}).filter(([, entry]) => entry.driver === "claudeAgent"));
+  const fleet = Object.keys(configured).length ? configured : DEFAULT_FLEET;
+  if (Object.hasOwn(configured, "claude") && !Object.hasOwn(configured, CLAUDE_API_INSTANCE)) fleet[CLAUDE_API_INSTANCE] = DEFAULT_FLEET[CLAUDE_API_INSTANCE];
+  const map: InstanceConfigMap = withoutComputerEngine({ ...fleet });
   for (const [id, sourceEntry] of Object.entries(map)) {
     // Copy: writing into the caller's persisted entry would freeze the workspace URL into it.
     const entry = { ...sourceEntry };
     map[id] = entry;
     const environment = { ...entry.environment };
-    const builtIn = API_KEY_FLEET[id];
-    const routingDefaults = builtIn?.driver === entry.driver
-      ? builtIn.config as { url?: string; apiKeyEnv?: string } | undefined
-      : undefined;
-    const ownsRouting = instanceOwnsRouting(cfg, entry, routingDefaults);
-    if (!ownsRouting) {
+    if (!instanceOwnsRouting(entry)) {
       for (const [key, value] of injectedEnvironment(cfg, id, entry.driver)) environment[key] = value;
     }
     entry.environment = environment;
-    if (entry.driver === "groq" && cfg.groq?.url && !ownsRouting) {
-      entry.config = { ...entry.config as object, url: cfg.groq.url };
-    }
-    if (entry.driver === "meta" && cfg.meta?.url && !ownsRouting) {
-      entry.config = { ...entry.config as object, url: cfg.meta.url };
-    }
-    if (entry.driver === "openai-compat" && cfg.openaiCompat && id !== OPENAI_API_INSTANCE && id !== OPENROUTER_API_INSTANCE) {
-      const defaults: Record<string, string> = {};
-      if (cfg.openaiCompat.url) defaults.url = cfg.openaiCompat.url;
-      if (cfg.openaiCompat.model) defaults.model = cfg.openaiCompat.model;
-      if (cfg.openaiCompat.provider) defaults.provider = cfg.openaiCompat.provider;
-      if (Object.keys(defaults).length) {
-        const raw = entry.config;
-        const current =
-          typeof raw === "object" && raw !== null && !Array.isArray(raw) ? (raw as Record<string, unknown>) : {};
-        const merged = { ...current };
-        for (const [k, v] of Object.entries(defaults)) {
-          // An empty provider means "no upstream pin"; never fill it from the workspace.
-          if (k === "provider" && typeof merged[k] === "string") continue;
-          if (typeof merged[k] !== "string" || !(merged[k] as string).trim()) merged[k] = v;
-        }
-        entry.config = merged;
-      }
-    }
   }
   return map;
 }

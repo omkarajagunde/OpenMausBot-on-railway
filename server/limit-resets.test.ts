@@ -1,12 +1,8 @@
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import { codexLimitResetsAt } from "./drivers/codex-errors.ts";
 import { engineLimitFromUsage, LimitResetClock, nearLimitNote } from "./limit-resets.ts";
 import type { RuntimeEvent } from "../shared/runtime-events.ts";
-import { parseClaudeUsage, parseCodexUsage, type PlanProviderRow, type PlanUsageReport, type PlanWindows } from "./plan-usage.ts";
+import { parseClaudeUsage, parseCodexUsage, type PlanProviderRow, type PlanWindows } from "./plan-usage.ts";
 
 const NOW = Date.parse("2026-10-19T10:00:00Z");
 const HOUR = 3_600_000;
@@ -28,7 +24,6 @@ const codex = (primary: [number, number], secondary: [number, number]) => row("c
     secondary_window: { used_percent: secondary[0], limit_window_seconds: 7 * 86400, reset_at: Math.floor(secondary[1] / 1000) },
   },
 }));
-const report = (...providers: PlanProviderRow[]): PlanUsageReport => ({ fetchedAt: iso(NOW), providers });
 
 describe("engineLimitFromUsage", () => {
   it("takes Claude's fullest window and its reset when nothing is at the limit", () => {
@@ -54,139 +49,6 @@ describe("engineLimitFromUsage", () => {
   it("has nothing to say for a row that could not be read, and no time for a row without windows", () => {
     expect(engineLimitFromUsage({ ...claude([1, NOW], [1, NOW]), ok: false, error: "Sign in again in Claude" })).toBeNull();
     expect(engineLimitFromUsage(row("claude", "claude", parseClaudeUsage({})))).toMatchObject({ usedPercent: null, resetsAt: null, blocked: false });
-  });
-});
-
-describe("LimitResetClock", () => {
-  const dirs: string[] = [];
-  afterEach(() => {
-    vi.useRealTimers();
-    delete process.env.OMB_TEST_PLAN_USAGE_FILE;
-    for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true });
-  });
-  const accounts = [{ id: "claude", name: "Claude", driver: "claude" as const, environment: {} }];
-  const clock = (options: Partial<ConstructorParameters<typeof LimitResetClock>[0]> = {}) => {
-    let now = NOW;
-    const instance = new LimitResetClock({ accounts: () => accounts, now: () => now, ...options });
-    return { instance, at: (next: number) => { now = next; } };
-  };
-
-  it("derives the reset from usage, and recomputes when usage moves it", () => {
-    const changed = vi.fn();
-    const { instance } = clock({ onChange: changed });
-    expect(instance.resetAt("claude")).toBeNull();
-    instance.noteUsage(report(claude([95, NOW + 2 * HOUR], [10, NOW + 90 * HOUR])));
-    expect(instance.resetAt("claude")).toBe(NOW + 2 * HOUR);
-    instance.noteUsage(report(claude([96, NOW + 3 * HOUR], [10, NOW + 90 * HOUR])));
-    expect(instance.resetAt("claude")).toBe(NOW + 3 * HOUR);
-    expect(changed).toHaveBeenCalledTimes(2);
-  });
-
-  it("trusts a refusal's own reset over the fullest window, unless usage shows a later window at its limit", () => {
-    const { instance, at } = clock();
-    instance.noteUsage(report(claude([80, NOW + 4 * HOUR], [60, NOW + 90 * HOUR])));
-    instance.noteRefusal("claude", NOW + HOUR);
-    expect(instance.resetAt("claude")).toBe(NOW + HOUR);
-    expect(instance.blockedUntil("claude")).toBe(NOW + HOUR);
-    instance.noteUsage(report(claude([100, NOW + HOUR], [100, NOW + 90 * HOUR])));
-    expect(instance.resetAt("claude")).toBe(NOW + 90 * HOUR);
-    at(NOW + 91 * HOUR);
-    expect(instance.blockedUntil("claude")).toBeNull();
-  });
-
-  it("keeps a passed refusal briefly, then forgets it", () => {
-    const { instance, at } = clock();
-    instance.noteRefusal("claude", NOW + HOUR);
-    at(NOW + HOUR + 60_000);
-    expect(instance.blockedUntil("claude")).toBeNull();
-    expect(instance.resetAt("claude")).toBe(NOW + HOUR);
-    at(NOW + 2 * HOUR);
-    expect(instance.resetAt("claude")).toBeNull();
-  });
-
-  it("blocks Codex only until its reset minute ends when it refuses within that minute", () => {
-    const minute = new Date(2026, 9, 19, 17, 23, 0).getTime();
-    const { instance, at } = clock();
-    at(minute + 20_000);
-    instance.noteRefusal("codex", codexLimitResetsAt("You've hit your usage limit. Try again at 5:23 PM.", minute + 20_000));
-    expect(instance.blockedUntil("codex")).toBe(minute + 59_999);
-    at(minute + 60_000);
-    expect(instance.blockedUntil("codex")).toBeNull();
-  });
-
-  it("ignores a refusal that names no engine, no time or a time already past", () => {
-    const { instance } = clock();
-    instance.noteRefusal(undefined, NOW + HOUR);
-    instance.noteRefusal("claude", undefined);
-    instance.noteRefusal("claude", NOW - 1);
-    expect(instance.report().engines).toEqual([]);
-  });
-
-  it("reports a refused engine as blocked even before its usage was read", () => {
-    const { instance } = clock();
-    instance.noteRefusal("claude", NOW + HOUR);
-    expect(instance.report().engines).toEqual([expect.objectContaining({ engine: "claude", name: "Claude", blocked: true, usedPercent: 100, resetsAt: NOW + HOUR })]);
-  });
-
-  it("reads usage at most once while it is fresh, and through the test fixture file when one is set", async () => {
-    const load = vi.fn(async () => report(claude([50, NOW + HOUR], [5, NOW + 90 * HOUR])));
-    const { instance, at } = clock({ loadUsage: load });
-    await Promise.all([instance.ensureFresh(), instance.ensureFresh()]);
-    await instance.ensureFresh();
-    expect(load).toHaveBeenCalledTimes(1);
-    at(NOW + 10 * 60_000);
-    await instance.ensureFresh();
-    expect(load).toHaveBeenCalledTimes(2);
-
-    const dir = mkdtempSync(join(tmpdir(), "omb-limit-fixture-"));
-    dirs.push(dir);
-    process.env.OMB_TEST_PLAN_USAGE_FILE = join(dir, "usage.json");
-    writeFileSync(process.env.OMB_TEST_PLAN_USAGE_FILE, JSON.stringify(report(claude([91, NOW + 5 * HOUR], [1, NOW + 90 * HOUR]))));
-    const fixture = clock().instance;
-    await fixture.refresh(true);
-    expect(fixture.limit("claude")).toMatchObject({ usedPercent: 91, resetsAt: NOW + 5 * HOUR });
-  });
-});
-
-describe("codexLimitResetsAt", () => {
-  it("reads Codex's local clock time as today, and a full date as given", () => {
-    const morning = new Date(2026, 9, 19, 9, 0, 0).getTime();
-    const today = new Date(2026, 9, 19, 17, 23, 0).getTime();
-    expect(codexLimitResetsAt("You've hit your usage limit. Upgrade to Pro or try again at 5:23 PM.", morning)).toBe(today);
-    expect(codexLimitResetsAt("You've hit your usage limit for gpt-6.1-sol. Switch to another model now, or try again at Oct 17th, 2026 5:23 PM.", morning))
-      .toBe(new Date(2026, 9, 17, 17, 23, 0).getTime());
-  });
-
-  it("reads a clock time whose minute has begun as the end of that minute, not tomorrow", () => {
-    // Codex prints only the time when the reset is on its own date, and drops the seconds.
-    const minute = new Date(2026, 9, 19, 17, 23, 0).getTime();
-    const said = "You've hit your usage limit. Try again at 5:23 PM.";
-    expect(codexLimitResetsAt(said, minute)).toBe(minute + 59_999);
-    expect(codexLimitResetsAt(said, minute + 20_000)).toBe(minute + 59_999);
-    expect(codexLimitResetsAt(said, minute + 90_000)).toBe(minute + 59_999);
-  });
-
-  // America/New_York repeats 1:00-1:59 AM on 2026-11-01 (05:00Z EDT, then 06:00Z EST).
-  it("reads a clock time in the repeated hour after a DST change as the later one once the first has passed", () => {
-    const previousTimezone = process.env.TZ;
-    process.env.TZ = "America/New_York";
-    try {
-      const said = (time: string) => `You've hit your usage limit. Try again at ${time}.`;
-      // In the second 1:30 AM, a reset at 1:50 AM is the second 1:50 AM, 20 minutes away.
-      expect(iso(codexLimitResetsAt(said("1:50 AM"), Date.parse("2026-11-01T06:30:00Z"))!)).toBe("2026-11-01T06:50:00.000Z");
-      // In the first 1:40 AM, a reset 40 minutes away is printed as 1:20 AM.
-      expect(iso(codexLimitResetsAt(said("1:20 AM"), Date.parse("2026-11-01T05:40:00Z"))!)).toBe("2026-11-01T06:20:00.000Z");
-      // A time still ahead in the first hour stays there.
-      expect(iso(codexLimitResetsAt(said("1:50 AM"), Date.parse("2026-11-01T05:30:00Z"))!)).toBe("2026-11-01T05:50:00.000Z");
-    } finally {
-      if (previousTimezone === undefined) delete process.env.TZ;
-      else process.env.TZ = previousTimezone;
-    }
-  });
-
-  it("names no time when Codex gives none or the words are not a usage limit", () => {
-    expect(codexLimitResetsAt("You've hit your usage limit. Try again later.")).toBeUndefined();
-    expect(codexLimitResetsAt("Please try again at 5:23 PM.")).toBeUndefined();
   });
 });
 

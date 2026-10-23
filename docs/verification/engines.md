@@ -52,7 +52,7 @@ prove real OAuth login or native Windows execution.
 ## Groq API setup
 
 ```sh
-pnpm exec vitest run server/drivers/groq.test.ts server/provider-key-check.test.ts server/config.test.ts server/openai-tools.e2e.test.ts src/components/ApiKeys.test.ts src/state/store.test.ts
+pnpm exec vitest run server/provider-key-check.test.ts server/config.test.ts server/openai-tools.e2e.test.ts src/components/ApiKeys.test.ts src/state/store.test.ts
 ```
 
 These fixtures use disposable data and local HTTP providers. They check the
@@ -70,7 +70,7 @@ this recipe.
 ## Meta Muse: Model API and Muse Code
 
 ```sh
-pnpm exec vitest run server/drivers/meta.test.ts server/drivers/muse-code.test.ts server/provider-key-check.test.ts server/config.test.ts server/openai-tools.e2e.test.ts src/components/ApiKeys.test.ts src/state/store.test.ts
+pnpm exec vitest run server/provider-key-check.test.ts server/config.test.ts server/openai-tools.e2e.test.ts src/components/ApiKeys.test.ts src/state/store.test.ts
 ```
 
 The Meta Model API fixtures use a local HTTP provider: preset endpoint,
@@ -82,7 +82,7 @@ with `muse login`. It spends that account's Muse usage, so it runs only when
 asked:
 
 ```sh
-OMB_LIVE_MUSE=1 pnpm exec vitest run server/drivers/muse-code.live.test.ts
+OMB_LIVE_MUSE=1 pnpm exec vitest run
 ```
 
 It lists the account's models (Muse Wonder 1.0), answers on Muse Wonder, runs

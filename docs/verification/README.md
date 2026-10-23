@@ -47,9 +47,7 @@ Use only mapped, tested commands:
 - [Chat turns](chat-turns.md)
 - [Conversation context compaction](context-compaction.md)
 - [Work summaries and engine hooks](digests.md)
-- [OpenAI-compatible structured tools](openai-tools.md)
 - [Per-bot tool selection and local-model checks](tool-selection.md)
-- [OpenCode model variants through ACP](opencode-variants.md)
 - [Bot setup, model scope, and file continuity](bot-continuity.md)
 - [Reviewed Chief team setup and scoped deletion](team-setup.md)
 - [Profile proposal and credential-card lifecycle](proposal-cards.md)
@@ -71,12 +69,7 @@ Use only mapped, tested commands:
 - [In-chat team coordination](room-coordination.md)
 - [Chief access to additional teams](team-access.md)
 - [Engines and Doctor](engines.md)
-- [Cline engine and native loopback qualification](cline.md)
 - [Claude coordination and turn-scoped tools](claude-tool-lifecycle.md)
-- [Codex bot instructions](codex-instructions.md)
-- [Codex browser routing and native search](codex-browser-routing.md)
-- [Codex helper event isolation](codex-helpers.md)
-- [Qwen model route selection](qwen-models.md)
 - [Team backups](team-backups.md)
 - [Sharing a whole team](team-sharing.md)
 - [The organization library](org-library.md)
@@ -234,12 +227,6 @@ approvals and provider safety errors in an isolated desktop UI.
 The [automatic recovery fixture](automatic-recovery.md) checks opt-in, one-shot
 backup model dispatch after proven pre-prompt ACP failures, preserving the
 conversation, approval level and Stop/new-message precedence.
-
-The [Codex account recipe](codex-account.md) checks account switching against an
-offline Codex CLI whose identity is synthetic and whose credential directory is empty.
-
-The [ChatGPT plan recipe](chatgpt-plan.md) checks the separate official OAuth
-flow, credential rotation, account ownership, and native Responses routing.
 
 The [mention fixture](mentions.md) checks candidate selection, composer highlighting,
 sent mentions, multiline scrolling and responsive wrapping in real chat views.

@@ -1,16 +1,8 @@
-import { createServer, type Server } from "node:http";
-import type { AddressInfo } from "node:net";
-import { fileURLToPath } from "node:url";
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import type { SendTurnInput } from "./contracts.ts";
-import { mountChatTools, type ChatToolSession } from "./drivers/chat-mcp-tools.ts";
-import { buildMcpServers } from "./drivers/pi.ts";
-import { turnStdioMcpServers } from "./drivers/turn-mcp.ts";
 import { appMountFor, gateServer, mcpStdioServer } from "./mcp-gate-config.ts";
-import type { McpAppReport } from "./mcp-app-observer.ts";
 
-const FAKE_APP = fileURLToPath(new URL("./testing/fake-stdio-app-server.ts", import.meta.url));
 const HARNESS = "http://127.0.0.1:8799";
 const agents = { command: process.execPath, args: ["agents-proxy.js"], env: { OMB_HARNESS_URL: HARNESS, OMB_COMMS_TOKEN: "comms-fixture" } };
 const board = { command: "board-mcp", args: ["--stdio"], env: { BOARD_KEY: "k" } };
@@ -68,85 +60,4 @@ describe("the shared decision", () => {
     }
     expect(mcpStdioServer(docs, { apps: undefined })).toEqual(mcpStdioServer(docs));
   });
-});
-
-describe("the ACP family and Muse Code (turn-mcp.ts)", () => {
-  it("mounts a command app server behind an observing gate and a URL one behind an observing proxy; the rest as before", () => {
-    const servers = Object.fromEntries(turnStdioMcpServers(turn()).map((server) => [server.name, server]));
-    expect(servers.board!.args[0]).toContain("mcp-gate");
-    expect(env(servers.board, "OMB_GATE_APPS")).toEqual(mount("board"));
-    expect(servers.draw!.args[0]).toContain("mcp-remote-proxy");
-    expect(env(servers.draw, "OMB_REMOTE_MCP_APPS")).toEqual(mount("draw"));
-    const before = Object.fromEntries(turnStdioMcpServers(turn({ integrations: { agents, custom: { board, notes, draw, docs } } })).map((server) => [server.name, server]));
-    expect(servers.notes).toEqual(before.notes);
-    expect(servers.docs).toEqual(before.docs);
-    expect(servers.agents).toEqual(before.agents);
-    expect(before.board).toEqual({ name: "board", ...board });
-  });
-
-  it("with a selection, gates each server once: the command app server's gate observes, a URL one's gate does not", () => {
-    const servers = Object.fromEntries(turnStdioMcpServers(turn({ toolScope: { allow: ["mcp:board:*", "mcp:draw:*", "mcp:agents:*"] } })).map((server) => [server.name, server]));
-    expect(Object.keys(servers).sort()).toEqual(["agents", "board", "draw"]);
-    expect(env(servers.board, "OMB_GATE_APPS")).toEqual(mount("board"));
-    expect(env(servers.board, "OMB_GATE_TOOL_SCOPE")).toBeDefined();
-    expect(env(servers.board, "OMB_GATE_UPSTREAM")).toEqual(board);
-    expect(servers.draw!.env).not.toHaveProperty("OMB_GATE_APPS");
-    expect(env(env(servers.draw, "OMB_GATE_UPSTREAM"), "OMB_REMOTE_MCP_APPS")).toEqual(mount("draw"));
-  });
-});
-
-describe("Pi", () => {
-  it("adds the apps settings to the gate or proxy each server already has", () => {
-    const servers = buildMcpServers(turn())!;
-    expect(env(servers.board as never, "OMB_GATE_APPS")).toEqual(mount("board"));
-    expect(env(servers.draw as never, "OMB_REMOTE_MCP_APPS")).toEqual(mount("draw"));
-    expect(env(servers.draw as never, "OMB_REMOTE_MCP_DIRECTORY")).toEqual({ name: "draw" });
-    const before = buildMcpServers(turn({ integrations: { agents, custom: { board, notes, draw, docs } } }))!;
-    expect(servers.notes).toEqual(before.notes);
-    expect(servers.docs).toEqual(before.docs);
-    expect(env(before.board as never, "OMB_GATE_APPS")).toBeUndefined();
-  });
-});
-
-describe("the Chat Completions runtime", () => {
-  let harness: Server | undefined;
-  let session: ChatToolSession | undefined;
-  afterEach(async () => {
-    await session?.close().catch(() => {});
-    session = undefined;
-    if (harness) { harness.closeAllConnections(); await new Promise<void>((resolve) => harness!.close(() => resolve())); }
-    harness = undefined;
-  });
-
-  const app = (extra: Record<string, string> = {}) => ({ command: process.execPath, args: ["--experimental-strip-types", "--no-warnings", FAKE_APP], env: extra });
-
-  it("never registers an app-only tool, observes a command app server in process, and falls back when it refuses the extension", async () => {
-    const reports: McpAppReport[] = [];
-    harness = createServer((req, res) => {
-      let body = "";
-      req.on("data", (chunk) => { body += chunk; });
-      req.on("end", () => { reports.push(JSON.parse(body)); res.writeHead(201).end("{}"); });
-    });
-    await new Promise<void>((resolve) => harness!.listen(0, "127.0.0.1", resolve));
-    const url = `http://127.0.0.1:${(harness.address() as AddressInfo).port}`;
-    // The agents mount carries the turn's capability; any MCP server stands in for it here.
-    const reporting = { ...app(), env: { OMB_HARNESS_URL: url, OMB_COMMS_TOKEN: "comms-fixture" } };
-    const controller = new AbortController();
-    session = await mountChatTools({ agents: reporting, custom: { board: app(), strict: app({ FAKE_APP_STRICT: "1" }), plain: app() },
-      mcpApps: { board: { extension: true }, strict: { extension: true } } }, controller.signal);
-    const names = session.definitions.map((definition) => definition.function.name);
-    for (const server of ["board", "strict", "plain"]) {
-      expect(names.filter((name) => name.startsWith(`${server}_`))).toEqual([`${server}_show_board`, `${server}_paint_board`, `${server}_peek_board`, `${server}_plain_echo`]);
-    }
-    const result = await session.execute("board_show_board", { cards: 2 }, controller.signal);
-    expect(result.text).toContain("Board with 2 cards");
-    await session.execute("plain_show_board", {}, controller.signal);
-    const deadline = Date.now() + 10_000;
-    while (reports.length < 1 && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 20));
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    // only the observed server reports, with the whole result
-    expect(reports).toHaveLength(1);
-    expect(reports[0]).toMatchObject({ tool: "mcp_app", server: "board", serverInfo: { title: "Fake App" }, call: { arguments: { cards: 2 } },
-      result: { structuredContent: { cards: 2 } } });
-  }, 60_000);
 });

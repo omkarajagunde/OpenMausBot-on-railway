@@ -9,7 +9,6 @@ import { cpSync, existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, r
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
-import { resolveCuaMacArches } from "./cua-mac-arches.mjs";
 import { LIPO_ARCH, isMachO, machOArchs, writeThinMachO } from "./mac-thin.mjs";
 
 const run = promisify(execFile);
@@ -109,11 +108,9 @@ export async function packedPackage(name, version, cache, scope = SCOPE) {
   return directory;
 }
 
-/** The trees to stage on this host: both mac arches on macOS (each app is
- *  single-arch), x64 elsewhere, matching electron-builder.yml. */
-export function targetsFor(platform = process.platform, env = process.env) {
-  if (platform === "darwin") return resolveCuaMacArches(env).map((arch) => ({ platform, arch }));
-  return [{ platform, arch: "x64" }];
+/** The server runs where it is built, so the one tree to stage is this host's. */
+export function targetsFor(platform = process.platform, arch = process.arch) {
+  return [{ platform, arch }];
 }
 
 function requireRegularFile(file) {

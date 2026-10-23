@@ -3,7 +3,7 @@
 // loopback trust. Secrets never ride a child's environment (/proc/<pid>/environ stays readable by the same user): the
 // server reads them from an inherited pipe. Root runs and trusts only the image's code, never the volume's.
 import { spawn, spawnSync, type ChildProcess } from "node:child_process";
-import { chmodSync, chownSync, existsSync, readFileSync, statSync, type Stats } from "node:fs";
+import { chmodSync, chownSync, existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, posix, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import {
@@ -12,18 +12,11 @@ import {
 } from "./cloud-home.ts";
 import { OOM_SCORE, spawnWithOomScore } from "./oom-score.ts";
 import { restartPolicy } from "./restart.ts";
+import { codeTrustProblem, passwdIds, SECRETS_FD, spawnWithSecrets } from "./root-launcher.ts";
+
+export { codeTrustProblem, passwdIds, spawnWithSecrets };
 
 const SERVICE_USER = "maus";
-const SECRETS_FD = 3;
-
-/** uid/gid from /etc/passwd; Node has no getpwnam. */
-export function passwdIds(passwd: string, name: string): { uid: number; gid: number } | null {
-  for (const line of passwd.split("\n")) {
-    const [user, , uid, gid] = line.split(":");
-    if (user === name && /^\d+$/.test(uid ?? "") && /^\d+$/.test(gid ?? "")) return { uid: Number(uid), gid: Number(gid) };
-  }
-  return null;
-}
 
 /** An allow-list by name, so a secret the platform adds later never reaches the server. Every setting the image's ENV
  * gives the server belongs here too (docker-image.test.ts checks): without OMB_DUCKDB_DIR the server found neither the
@@ -83,36 +76,6 @@ export function hardenHost(env: NodeJS.ProcessEnv, run: { exec: (command: string
     try { run.chmod("/.fly", 0o700); notes.push("/.fly: root only"); } catch (error) { notes.push(`/.fly: left as is (${error instanceof Error ? error.message : String(error)})`); }
   }
   return notes;
-}
-
-/** Each file and every folder above it must be root's and not writable by others, and never on the `maus`-owned volume:
- * otherwise `maus` could rewrite what runs as root at the next start. */
-export function codeTrustProblem(files: readonly string[], home: string, stat: (path: string) => Pick<Stats, "uid" | "mode"> = statSync): string | null {
-  const volume = posix.join(home, "/");
-  for (const file of files) {
-    if (file === home || file.startsWith(volume)) return `${file} is on the volume`;
-    for (let path = file; ; path = dirname(path)) {
-      let owner: Pick<Stats, "uid" | "mode">;
-      try { owner = stat(path); } catch { return `${path} cannot be checked`; }
-      if (owner.uid !== 0) return `${path} is not root's`;
-      // A folder with the sticky bit (/tmp) lets nobody replace root's files.
-      if (owner.mode & 0o022 && !(path !== file && owner.mode & 0o1000)) return `${path} is writable by others than root`;
-      if (dirname(path) === path) break;
-    }
-  }
-  return null;
-}
-
-/** Secrets go over an inherited pipe, never the environment; it is written and closed at once. */
-export function spawnWithSecrets(command: string, args: string[], env: NodeJS.ProcessEnv, secrets: Record<string, string>,
-  ids?: { uid: number; gid: number } | null, capture = false): ChildProcess {
-  const child = spawn(command, args, { env,
-    stdio: capture ? ["inherit", "pipe", "pipe", "pipe"] : ["inherit", "inherit", "inherit", "pipe"],
-    ...(ids ? { uid: ids.uid, gid: ids.gid } : {}) });
-  const pipe = child.stdio[SECRETS_FD] as NodeJS.WritableStream | null;
-  pipe?.on("error", () => {});
-  pipe?.end(JSON.stringify(secrets));
-  return child;
 }
 
 export function startCloudHome(env: NodeJS.ProcessEnv = process.env) {

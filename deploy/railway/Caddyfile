@@ -1,0 +1,41 @@
+# Edge for an OpenMausBot service on Railway. Railway's proxy terminates TLS
+# and reaches this container on $PORT. The server listens only on 127.0.0.1,
+# and every request forwarded to it carries X-Forwarded-*, so it is never the
+# loopback owner (server/request-auth.ts): a browser needs a session.
+# OMB_EDGE_SCHEME is what the browser used: https on Railway, http for a local
+# `docker run` (server/railway-start.ts sets it).
+{
+	admin off
+	auto_https off
+	persist_config off
+	servers {
+		# Only these peers may name a client; the address feeds the sign-in
+		# lockout, never authorization.
+		trusted_proxies static private_ranges 100.64.0.0/10
+		trusted_proxies_strict
+		client_ip_headers X-Real-IP X-Forwarded-For
+	}
+}
+
+:{$PORT} {
+	encode zstd gzip
+
+	# Webhook ingress has its own per-hook secrets.
+	handle /hooks/* {
+		reverse_proxy 127.0.0.1:8800 {
+			header_up X-Forwarded-Proto {$OMB_EDGE_SCHEME}
+			header_up X-Forwarded-For {client_ip}
+		}
+	}
+
+	handle {
+		reverse_proxy 127.0.0.1:8799 {
+			lb_try_duration 30s
+			lb_try_interval 250ms
+			header_up X-Forwarded-Proto {$OMB_EDGE_SCHEME}
+			header_up X-Forwarded-For {client_ip}
+			# the event stream must not be buffered
+			flush_interval -1
+		}
+	}
+}

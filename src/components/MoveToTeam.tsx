@@ -4,7 +4,7 @@
 // MausBot Cloud sign-in it verified, never from this page.
 import { useEffect, useState, type ReactNode } from "react";
 import { ArrowRightLeft, Loader2, Users } from "lucide-react";
-import type { TeamMoveView } from "../../electron/team-move.mjs";
+import type { TeamMoveView } from "../../shared/client/team-move.mjs";
 import type { Bot } from "@/state/store";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { ipcErrorText, teamMoveLine } from "@/lib/cloud-send";

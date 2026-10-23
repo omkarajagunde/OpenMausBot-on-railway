@@ -1,7 +1,7 @@
 import { Children, createElement, isValidElement, type EffectCallback, type ReactElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import type { CloudLendingBridge, CloudLendingSnapshot } from "../../electron/computer-sharing.mjs";
+import type { CloudLendingBridge, CloudLendingSnapshot } from "../../shared/client/computer-sharing.mjs";
 import { setLocale, t } from "@/lib/i18n";
 import { localeChoices, locales } from "@/locales";
 import type { LocaleKey } from "@/locales";

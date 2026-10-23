@@ -1,6 +1,6 @@
-import type { CloudAccountState, CloudPlanSnapshot } from "../../electron/cloud-account.mjs";
-import type { CloudCredit, CloudOffer, CloudOfferPlan, CloudPlanAllowances, CloudSetupStep, CloudTrial, CloudTrialState } from "../../electron/cloud-home.mjs";
-import { planTeam, teamPlan } from "../../electron/cloud-team-plan.mjs";
+import type { CloudAccountState, CloudPlanSnapshot } from "../../shared/client/cloud-account.mjs";
+import type { CloudCredit, CloudOffer, CloudOfferPlan, CloudPlanAllowances, CloudSetupStep, CloudTrial, CloudTrialState } from "../../shared/client/cloud-home.mjs";
+import { planTeam, teamPlan } from "../../shared/client/cloud-team-plan.mjs";
 import { activeLocale, t } from "@/lib/i18n";
 import type { LocaleKey } from "@/locales";
 

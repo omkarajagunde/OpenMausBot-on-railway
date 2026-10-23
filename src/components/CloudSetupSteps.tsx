@@ -1,4 +1,4 @@
-import type { CloudSetupStep } from "../../electron/cloud-home.mjs";
+import type { CloudSetupStep } from "../../shared/client/cloud-home.mjs";
 import { t } from "@/lib/i18n";
 import type { LocaleKey } from "@/locales";
 

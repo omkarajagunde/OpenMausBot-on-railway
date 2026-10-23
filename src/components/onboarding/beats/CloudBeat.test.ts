@@ -2,8 +2,8 @@
 import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import type { CloudAccountState } from "../../../../electron/cloud-account.mjs";
-import type { CloudOffer } from "../../../../electron/cloud-home.mjs";
+import type { CloudAccountState } from "../../../../shared/client/cloud-account.mjs";
+import type { CloudOffer } from "../../../../shared/client/cloud-home.mjs";
 import { setLocale } from "@/lib/i18n";
 
 const f = vi.hoisted(() => ({ state: {} as any, dispatch: vi.fn(), api: vi.fn(), branded: false }));

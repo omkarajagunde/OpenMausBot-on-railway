@@ -6,8 +6,8 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import { connect as tcpConnect, createServer as createTcpServer, type AddressInfo, type Socket } from "node:net";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { runDeviceLink } from "../electron/device-link.mjs";
-import { LINK_ENDED, linkPath } from "../electron/device-link-protocol.mjs";
+import { runDeviceLink } from "../shared/client/device-link.mjs";
+import { LINK_ENDED, linkPath } from "../shared/client/device-link-protocol.mjs";
 import { DeviceLinks } from "./device-links.ts";
 import { json, readBody } from "./harness/http.ts";
 import { createSharedComputerRoutes } from "./routes/shared-computers.ts";

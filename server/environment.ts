@@ -37,6 +37,8 @@ export interface EnvironmentDescriptor {
     selfUpdate: "desktop-managed" | "operator";
     /** Whether /pair offers "sign in with your email" (an allow-list is set). */
     emailSignIn?: boolean;
+    /** Whether /pair offers the owner's administrator password (OMB_ADMIN_PASSWORD_HASH is set). */
+    passwordSignIn?: true;
     /** GET /api/threads/:id/job answers, long-polled (the headless CLI needs it). */
     jobs: true;
   };
@@ -119,7 +121,7 @@ export function serverVersion(root = SERVER_ROOT): string {
   return "unknown";
 }
 
-export function environmentDescriptor(input: { environmentId: string; desktopManaged: boolean; emailSignIn?: boolean; sharedComputers?: boolean; cloudHome?: boolean; label?: string }): EnvironmentDescriptor {
+export function environmentDescriptor(input: { environmentId: string; desktopManaged: boolean; emailSignIn?: boolean; passwordSignIn?: boolean; sharedComputers?: boolean; cloudHome?: boolean; label?: string }): EnvironmentDescriptor {
   return {
     environmentId: input.environmentId,
     label: input.label?.trim() || process.env.OMB_ENVIRONMENT_LABEL?.trim() || hostname(),
@@ -134,6 +136,7 @@ export function environmentDescriptor(input: { environmentId: string; desktopMan
       ...(input.cloudHome === true ? { cloudHome: true as const, move: 1 as const } : {}),
       selfUpdate: input.desktopManaged ? "desktop-managed" : "operator",
       emailSignIn: input.emailSignIn === true,
+      ...(input.passwordSignIn === true ? { passwordSignIn: true as const } : {}),
       jobs: true,
     },
   };

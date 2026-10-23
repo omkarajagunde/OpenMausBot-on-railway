@@ -2,7 +2,7 @@
 import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import type { CloudOffer } from "../../../electron/cloud-home.mjs";
+import type { CloudOffer } from "../../../shared/client/cloud-home.mjs";
 import { setLocale } from "@/lib/i18n";
 
 const f = vi.hoisted(() => ({ state: {} as any, dispatch: vi.fn() }));

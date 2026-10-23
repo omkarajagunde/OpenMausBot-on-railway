@@ -9,13 +9,9 @@
 import { spawn } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import type { ToolScope } from "../shared/tool-scope.ts";
-import type { SendTurnInput } from "./contracts.ts";
 import { TOOL_BRIDGE_ENV } from "./drivers/agents-bridge.ts";
-import { mountChatTools, type ChatToolSession } from "./drivers/chat-mcp-tools.ts";
-import { buildMcpServers } from "./drivers/pi.ts";
-import { turnStdioMcpServers } from "./drivers/turn-mcp.ts";
 import { gateServer } from "./mcp-gate-config.ts";
 import { SPAWNED_PROXIES } from "./proxy-paths.ts";
 import { waitForExit } from "./testing/cleanup.ts";
@@ -104,53 +100,6 @@ describe("a gate's upstream", () => {
     const other: Server = { command: "npx", args: ["some-server"], env: { TOKEN: "t", [TOOL_BRIDGE_ENV]: "1" } };
     expect(upstreamOf(gateServer({ name: "notes", server: other, threadId: "thread-gated", budget: 0, toolScope: { allow: ["mcp:notes:*"] } })!)).toEqual(other);
     expect(other.env[TOOL_BRIDGE_ENV]).toBe("1");
-  });
-});
-
-describe("every mount that puts a selection in front of the agents server", () => {
-  const turn = (toolScope?: ToolScope): SendTurnInput => ({ threadId: "thread-gated", text: "hi", integrations: { agents: BRIDGED }, ...(toolScope ? { toolScope } : {}) });
-
-  it("the ACP mounts start it unbridged, and bridged as built without one", () => {
-    const gated = turnStdioMcpServers(turn(DENY_VM)).find((server) => server.name === "agents")!;
-    expect(gated.args).toEqual([SPAWNED_PROXIES.mcpGate]);
-    expect(upstreamOf(gated).env[TOOL_BRIDGE_ENV]).toBe("0");
-    expect(turnStdioMcpServers(turn()).find((server) => server.name === "agents")!.env[TOOL_BRIDGE_ENV]).toBe("1");
-  });
-
-  it("Pi's mount starts it unbridged, and bridged as built without one", () => {
-    const gated = buildMcpServers(turn(DENY_VM))!.agents as Server;
-    expect(gated.args).toEqual([SPAWNED_PROXIES.mcpGate]);
-    expect(upstreamOf(gated).env[TOOL_BRIDGE_ENV]).toBe("0");
-    expect((buildMcpServers(turn())!.agents as Server).env[TOOL_BRIDGE_ENV]).toBe("1");
-  });
-
-  describe("the chat runtime's own selection", () => {
-    let session: ChatToolSession | undefined;
-    afterEach(async () => { await session?.close(); session = undefined; });
-    const mounted = async (toolScope?: ToolScope) => {
-      session = await mountChatTools({ agents: BRIDGED }, new AbortController().signal, false, toolScope);
-      return session.definitions.map((definition) => definition.function.name);
-    };
-
-    it("lists the whole catalog but what the selection leaves out, with no bridge tools", async () => {
-      const names = await mounted(DENY_VM);
-      for (const absent of ["agents_find_tool", "agents_use_tool", "agents_vm_exec"]) expect(names, absent).not.toContain(absent);
-      expect(names).toEqual(expect.arrayContaining(["agents_coordinate_bots", "agents_create_trigger", "agents_list_triggers", "agents_session_search"]));
-      // still OpenMausBot's own server, which never asks
-      expect(session!.view("agents_list_triggers", {})).toMatchObject({ ask: false });
-      expect(() => session!.validate("agents_use_tool", { name: "vm_exec" })).toThrow("not advertised for this turn");
-    });
-
-    it("lists only what an allow-list names, so the bridge tools cannot be lost to it", async () => {
-      expect(await mounted(ONLY_LIST_BOTS)).toEqual(["agents_list_bots"]);
-    });
-
-    it("is bridged as built when the bot has no selection", async () => {
-      const names = await mounted();
-      expect(names.slice(-2)).toEqual(["agents_find_tool", "agents_use_tool"]);
-      expect(names).not.toContain("agents_create_trigger");
-      expect(session!.view("agents_use_tool", { name: "list_triggers" })).toMatchObject({ ask: false });
-    });
   });
 });
 

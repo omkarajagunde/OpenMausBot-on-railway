@@ -287,7 +287,7 @@ function reloadFixture() {
     .map(turn => [`cap-${turn.threadId}`, { botId: turn.botId, threadId: turn.threadId }]));
   const context = vm.createContext({
     providerFleetReloading: false, providerInstancesChanging: new Set<string>(),
-    providerConfigs: () => configs, changedInstanceIds, engineLaunches: (launched: typeof configs) => engineLaunches(launched, {}),
+    providerConfigs: () => configs, changedInstanceIds, engineLaunches: (launched: typeof configs) => engineLaunches(launched),
     decorateHostedProvider: undefined,
     internalCapabilities: capabilities, sessionCredentials: bearers,
     revokeEarlierTurnCapabilities: (threadId: string) => {
@@ -334,7 +334,7 @@ function reloadFixture() {
   const save = (next: typeof configs) => {
     const before = configs;
     configs = next;
-    return context.reloadProviders(engineLaunches(before, {})) as Promise<void>;
+    return context.reloadProviders(engineLaunches(before)) as Promise<void>;
   };
   const held = () => Object.fromEntries([...bearers].map(([threadId, slots]) => [threadId, [...slots.keys()]]));
   return { threads, log, settled, revoked, held, save, configs: () => configs, context };

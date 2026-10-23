@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { ManagedDesktopState } from "../../electron/managed-desktop.mjs";
+import type { ManagedDesktopState } from "../../shared/client/managed-desktop.mjs";
 import { activeLocale, t } from "@/lib/i18n";
 import { Card } from "./SettingsPrimitives";
 import { CompanyModels } from "./CompanyModels";

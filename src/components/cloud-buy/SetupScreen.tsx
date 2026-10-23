@@ -1,6 +1,6 @@
 // Screen 4: the Cloud is set up (about two minutes); meanwhile it gets a name and a colour, then it opens by itself.
-import type { CloudColor } from "../../../electron/cloud-buy.mjs";
-import type { CloudSetupStep } from "../../../electron/cloud-home.mjs";
+import type { CloudColor } from "../../../shared/client/cloud-buy.mjs";
+import type { CloudSetupStep } from "../../../shared/client/cloud-home.mjs";
 import { cn } from "@/lib/cn";
 import { CLOUD_COLOR_LABEL, CLOUD_COLORS, CLOUD_NAME_MAX, cloudColorFill } from "@/lib/cloud-look";
 import { cloudPlanLabel, usd, type CloudStarted } from "@/lib/cloud-plan";

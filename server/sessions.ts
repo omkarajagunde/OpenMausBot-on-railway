@@ -433,7 +433,7 @@ export class SessionRegistry {
     }
   }
 
-  issue(input: { label: string; scopes: Scope[]; userId?: string; email?: string }): { token: string; session: PublicSession } {
+  issue(input: { label: string; scopes: Scope[]; userId?: string; email?: string; cookieOnly?: true }): { token: string; session: PublicSession } {
     return this.issueAccount(input);
   }
 
@@ -471,7 +471,7 @@ export class SessionRegistry {
     return this.issueAccount({ label: "Hosted workspace", email: input.email, userId: `portal:${input.grant}`, scopes: input.scopes }, "portal");
   }
 
-  private issueAccount(input: { label: string; scopes: Scope[]; userId?: string; email?: string }, membershipAuthority?: "portal"): { token: string; session: PublicSession } {
+  private issueAccount(input: { label: string; scopes: Scope[]; userId?: string; email?: string; cookieOnly?: true }, membershipAuthority?: "portal"): { token: string; session: PublicSession } {
     this.refusePersonal(input.scopes);
     this.prune();
     const now = this.now();
@@ -488,6 +488,7 @@ export class SessionRegistry {
     if (input.userId) record.userId = input.userId;
     if (input.email) record.email = input.email;
     if (membershipAuthority) record.membershipAuthority = membershipAuthority;
+    if (input.cookieOnly) record.cookieOnly = true;
     this.sessions.push(record);
     this.lastSeenWrites.set(record.id, now);
     this.persist();

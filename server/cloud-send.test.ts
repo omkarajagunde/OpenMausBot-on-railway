@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BOT_PARTS, EMPTY, PICTURE_PART, itemKey } from "../electron/cloud-send-parts.mjs";
+import { BOT_PARTS, EMPTY, PICTURE_PART, itemKey } from "../shared/client/cloud-send-parts.mjs";
 import { botParts, cloudSendSummary, partHash, unused, type CloudSendSources } from "./cloud-send.ts";
 import { keptBotIds } from "./routes/bots-create.ts";
 import type { BotRecord } from "./store.ts";

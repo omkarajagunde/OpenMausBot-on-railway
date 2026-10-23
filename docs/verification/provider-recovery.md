@@ -46,7 +46,7 @@ and the account selected in OMB; never request the user's keys or tokens.
 ## ACP internal-error recovery
 
 ```sh
-pnpm exec vitest run server/drivers/acp/acp.test.ts server/acp-recovery.e2e.test.ts server/resume-recovery.test.ts server/delta-context.test.ts server/incidents.e2e.test.ts server/room-coordination.e2e.test.ts
+pnpm exec vitest run server/acp-recovery.e2e.test.ts server/resume-recovery.test.ts server/delta-context.test.ts server/incidents.e2e.test.ts server/room-coordination.e2e.test.ts
 ```
 
 The ACP transport fixture injects an internal RPC error, including one after
@@ -68,45 +68,10 @@ configuration, session, or upstream API failures. Its presence alone does not
 prove that a working-folder path is wrong, and restarting cannot repair a
 persistently invalid account or provider configuration.
 
-## Isolated server and real UI
-
-```sh
-pnpm exec electron scripts/smoke-approval-modes.cjs --ui
-```
-
-The real server runs under Electron's private utility-process channel with
-fake Claude, Codex, Grok and Antigravity providers. Assertions cover:
-
-- Changing a bot's default to Full leaves existing Ask threads unchanged.
-- Explicitly applying that approved default changes only the selected thread.
-- The composer also grants Full directly to an Ask thread without changing the
-  bot default or visiting Settings. Its private request pins the thread and
-  waits for an actual commit acknowledgment before a queued send can proceed.
-- Custom is available for Codex threads, even when the bot default uses another
-  provider. Returning to Ask uses the same private scoped path.
-- Direct HTTP elevation and unknown threads are rejected. The legacy
-  apply-bot-default operation still checks that default/provider; the composer
-  checks the selected thread's own provider instead.
-- The updated conversation uses the provider's native Full mode; unrelated
-  conversations remain Ask. Delegation never borrows the sender's authority.
-- Auto-accept edits works only for providers that implement that mode.
-- The real composer approval menu exposes Full without a separate shortcut
-  or settings link. It opens a scoped warning with Cancel focused. Cancel does
-  not send a grant; confirmation changes server state through the private
-  channel and updates the composer. The bot default remains Ask, and a
-  subsequent message completes.
-- At 390px the new control and confirmation remain usable. The provider
-  safety error explains the restriction and does not offer Retry.
-
-For a UI-only rerun use `--ui-only` instead of `--ui`. Screenshots are written
-to `.omb-scratch/verify-evidence/provider-fixes/`. The fixture exits and removes
-its own disposable server/browser data; the screenshots remain.
-
 ## Regression checks
 
 ```sh
-pnpm exec vitest run server/drivers/acp/acp.test.ts server/drivers/claude.test.ts server/drivers/claude-auth.test.ts server/drivers/codex.test.ts server/drivers/retry.test.ts server/store.test.ts src/components/ChatView.controls.test.ts
-node --test electron/approval-trusted-mode.node-test.mjs
+pnpm exec vitest run server/drivers/claude.test.ts server/drivers/claude-auth.test.ts server/drivers/retry.test.ts server/store.test.ts src/components/ChatView.controls.test.ts
 pnpm typecheck
 pnpm lint
 ```

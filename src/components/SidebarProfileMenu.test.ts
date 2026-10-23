@@ -22,8 +22,8 @@ import {
   type PhonePairingAccess,
   type PhonePairingTarget,
 } from "@/lib/phone-pairing";
-import type { CloudAccountState } from "../../electron/cloud-account.mjs";
-import type { CloudMachine } from "../../electron/cloud-home.mjs";
+import type { CloudAccountState } from "../../shared/client/cloud-account.mjs";
+import type { CloudMachine } from "../../shared/client/cloud-home.mjs";
 import { PHONE_APPS, PhoneAppDialog, type PhoneAppConnect } from "./PhoneAppDialog";
 import type { UpdaterState } from "@/lib/updater";
 

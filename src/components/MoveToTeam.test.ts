@@ -1,8 +1,8 @@
 import { Children, createElement, isValidElement, type EffectCallback, type ReactElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import type { CloudSendNotice, CloudSendPageBridge } from "../../electron/cloud-send.mjs";
-import type { TeamMoveView } from "../../electron/team-move.mjs";
+import type { CloudSendNotice, CloudSendPageBridge } from "../../shared/client/cloud-send.mjs";
+import type { TeamMoveView } from "../../shared/client/team-move.mjs";
 import { setLocale } from "@/lib/i18n";
 import type { Bot } from "@/state/store";
 const f = vi.hoisted(() => ({ values: [] as unknown[], index: 0, effects: [] as EffectCallback[] }));

@@ -473,6 +473,12 @@ OpenMausBot is free and open source. If it does real work for you, you can
 with a one-time contribution or a monthly sponsorship. Your support helps fund ongoing development
 and maintenance; OpenMausBot remains free and open source.
 
+## Deploy on Railway
+
+One container serves the web app, runs the harness server with Claude Code, and
+signs you in with an administrator password. Set `OMB_ADMIN_PASSWORD`, attach a
+volume at `/data`, and deploy: see [deploy/railway/README.md](deploy/railway/README.md).
+
 ## Run from a terminal or on a server
 
 With Node 24 or newer, install once and run:

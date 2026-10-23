@@ -10,7 +10,7 @@
 import { lookup } from "node:dns/promises";
 import { connect, createServer, isIP, type BlockList, type Socket } from "node:net";
 
-import type { LinkOpened } from "../../../electron/device-link-protocol.mjs";
+import type { LinkOpened } from "../../../shared/client/device-link-protocol.mjs";
 import { addressClass, namesThisMachine, ownAddresses } from "./policy.ts";
 
 export interface ResolvedAddress { address: string; family: number }

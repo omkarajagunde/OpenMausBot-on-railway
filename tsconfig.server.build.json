@@ -9,8 +9,7 @@
   },
   "exclude": [
     "server/**/*.test.ts",
-    "server/testing",
-    "server/drivers/pi-mcp-extension.ts"
+    "server/testing"
   ],
   "include": [
     "server"

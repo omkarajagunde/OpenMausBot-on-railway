@@ -3,7 +3,7 @@ import { createElement } from "react";
 import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { CloudSendNotice } from "../../../electron/cloud-send.mjs";
+import type { CloudSendNotice } from "../../../shared/client/cloud-send.mjs";
 import { EMPTY_ONBOARDING } from "@/lib/onboarding";
 import { setLocale } from "@/lib/i18n";
 import { ADVANCED_MODE_KEY } from "@/lib/interface-mode";

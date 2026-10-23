@@ -2,7 +2,7 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { itemKey } from "../electron/cloud-send-parts.mjs";
+import { itemKey } from "../shared/client/cloud-send-parts.mjs";
 import { CalendarCallManager } from "./calendar-calls.ts";
 import { importedSkillHash, kindRecord, moveItems, moveKindsRoute, type MoveKindsDeps } from "./cloud-send-kinds.ts";
 import { readImportedSkills } from "./imported-skills.ts";

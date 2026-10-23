@@ -6,7 +6,7 @@ import { randomUUID } from "node:crypto";
 import { chmodSync, closeSync, lstatSync, mkdirSync, openSync, readdirSync, readFileSync, renameSync, rmSync, rmdirSync, statfsSync, writeSync, existsSync } from "node:fs";
 import { dirname, join, posix, sep, win32 } from "node:path";
 import { writeFileAtomic } from "./atomic.ts";
-import { clashPath, cloudReserveBytes, validWirePath } from "../electron/cloud-sync-rules.mjs";
+import { clashPath, cloudReserveBytes, validWirePath } from "../shared/client/cloud-sync-rules.mjs";
 import { SyncPathError, insideFolder } from "./cloud-sync-paths.ts";
 import { CloudSyncStore, sha256File, walk, type SyncFile, type SyncFolder } from "./cloud-sync-store.ts";
 

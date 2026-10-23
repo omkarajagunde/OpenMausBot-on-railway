@@ -6,7 +6,7 @@ import { createReadStream, lstatSync, mkdirSync, readdirSync, readFileSync, rena
 import { join, relative, sep } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { writeFileAtomic } from "./atomic.ts";
-import { TRASH_DAYS, foldKey, safeFolderName, skipped, validWirePath } from "../electron/cloud-sync-rules.mjs";
+import { TRASH_DAYS, foldKey, safeFolderName, skipped, validWirePath } from "../shared/client/cloud-sync-rules.mjs";
 import { syncRoot } from "./cloud-sync-paths.ts";
 
 export interface SyncFolder {

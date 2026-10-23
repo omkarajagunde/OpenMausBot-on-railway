@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ChevronDown, Cloud, Laptop } from "lucide-react";
 import { cn } from "@/lib/cn";
-import type { CloudPlanSnapshot } from "../../electron/cloud-account.mjs";
+import type { CloudPlanSnapshot } from "../../shared/client/cloud-account.mjs";
 import { cloudColor } from "@/lib/cloud-look";
 import { t } from "@/lib/i18n";
 import { CloudTile } from "./cloud-buy/parts";

@@ -8,8 +8,8 @@ import { lstatSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { z } from "zod";
 
-import { EMPTY, MOVE_BOT_PARTS, itemKey } from "../electron/cloud-send-parts.mjs";
-import type { MoveKind } from "../electron/cloud-send-parts.mjs";
+import { EMPTY, MOVE_BOT_PARTS, itemKey } from "../shared/client/cloud-send-parts.mjs";
+import type { MoveKind } from "../shared/client/cloud-send-parts.mjs";
 import type { AppTrigger } from "../shared/app-triggers.ts";
 import { canonicalJson } from "../shared/package-format.ts";
 import { isSkillName } from "../shared/skill-md.ts";

@@ -23,7 +23,6 @@ export const SPAWNED_PROXIES = {
   mcpRemote: resolveProxy("mcp-remote-proxy"),
   phone: resolveProxy("drivers/phone-proxy"),
   hook: resolveProxy("hooks/omb-hook"),
-  piMcpExtension: resolveProxy("drivers/pi-mcp-extension"),
 } as const;
 
 // in the packaged app process.execPath is Electron — run the proxy as node

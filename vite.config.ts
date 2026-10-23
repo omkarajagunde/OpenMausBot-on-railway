@@ -22,7 +22,7 @@ export default defineConfig({
     include: [
       "evals/**/*.test.ts",
       "server/**/*.test.ts",
-      "electron/**/*.test.mjs",
+      "shared/**/*.test.mjs",
       "src/**/*.test.ts",
       "shared/**/*.test.ts",
       "companion/**/*.test.ts",
@@ -56,7 +56,7 @@ export default defineConfig({
     // packager output lands inside the repo — its HTML files must never
     // trigger dev full-page reloads
     watch: {
-      ignored: ["**/release/**", "**/build/**", "**/dist/**", "**/electron/resources/**"],
+      ignored: ["**/release/**", "**/build/**", "**/dist/**"],
     },
     // the harness server owns every provider process; the app only ever
     // talks to /api — clients hold no transports

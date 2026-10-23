@@ -2,7 +2,7 @@
 // ?desktop=1 adds the reduced bridge a Cloud's page gets in the desktop app; ?move=copy|done shows the one-time move on its
 // way or landed; ?step= opens the welcome on a step; ?skin= picks a skin.
 import { createRoot } from "react-dom/client";
-import type { CloudSendNotice } from "../../electron/cloud-send.mjs";
+import type { CloudSendNotice } from "../../shared/client/cloud-send.mjs";
 import App from "../../src/App";
 import { returnToWelcome } from "../../src/lib/cloud-welcome";
 import { initialDesktopCapabilities } from "../../src/lib/desktop";

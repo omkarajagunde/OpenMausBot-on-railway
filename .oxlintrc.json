@@ -12,12 +12,9 @@
     ".roo/**",
     ".windsurf/**",
     "dist/**",
-    "dist-electron/**",
     "dist-native/**",
     "dist-server/**",
-    "electron/vendor/**",
     "release/**",
-    "third_party/**",
-    "electron/resources/**"
+    "third_party/**"
   ]
 }

@@ -208,6 +208,8 @@ export function verificationServerEnvironment(parentEnv: NodeJS.ProcessEnv, data
   if (parentEnv.OMB_TEST_STALL_CLOCK === "1") childEnv.OMB_TEST_STALL_CLOCK = "1";
   // The UI checks drive this fixture from a real browser, as `pnpm dev` does; OMB_DEV_TRUST_LOCAL_BROWSER=0 tests the sign-in.
   if (parentEnv.OMB_DEV_TRUST_LOCAL_BROWSER !== "0") childEnv.OMB_DEV_TRUST_LOCAL_BROWSER = "1";
+  // The Railway image's sign-in: an administrator password's hash.
+  if (parentEnv.OMB_ADMIN_PASSWORD_HASH) childEnv.OMB_ADMIN_PASSWORD_HASH = parentEnv.OMB_ADMIN_PASSWORD_HASH;
   // Desktop mode: the owner capability the app would hand the server.
   if (parentEnv.OMB_TEST_DESKTOP_OWNER_TOKEN) {
     childEnv.OMB_TEST_DESKTOP_OWNER_TOKEN = parentEnv.OMB_TEST_DESKTOP_OWNER_TOKEN;

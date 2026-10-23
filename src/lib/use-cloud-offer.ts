@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { CloudOffer } from "../../electron/cloud-home.mjs";
+import type { CloudOffer } from "../../shared/client/cloud-home.mjs";
 
 export function useCloudOffer(enabled: boolean, session?: CloudOffer): CloudOffer | null {
   const bridge = enabled && !window.ogb?.remoteClient?.active ? window.ogb?.cloudAccount : undefined;

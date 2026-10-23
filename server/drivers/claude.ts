@@ -41,7 +41,7 @@ import { claudeApiErrorMessage, claudeEngineReset, claudeLimitRefusal, claudeUsa
 import { TEAM_TOOLS_FAILED, teamToolsFailed } from "./team-tools.ts";
 import { engineIdleMs, sessionIdlePolicy } from "./session-idle.ts";
 import { promptHalves, withVolatileNote } from "./prompt-split.ts";
-import { parseVersionTriple, versionAtLeast } from "./acp/core.ts";
+import { parseVersionTriple, versionAtLeast } from "./version-triple.ts";
 import {
   applyClaudeInject,
   decodeInjectId,

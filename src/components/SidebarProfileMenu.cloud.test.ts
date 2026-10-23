@@ -1,7 +1,7 @@
 import { createElement, type EffectCallback } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import type { CloudAccountBridge, CloudAccountState } from "../../electron/cloud-account.mjs";
+import type { CloudAccountBridge, CloudAccountState } from "../../shared/client/cloud-account.mjs";
 
 // React's hooks are replayed by hand.
 const f = vi.hoisted(() => ({ values: [] as unknown[], index: 0, effects: [] as EffectCallback[] }));

@@ -51,19 +51,6 @@ afterEach(() => {
   for (const directory of temporaryDirectories.splice(0)) fs.rmSync(directory, { recursive: true, force: true });
 });
 
-describe("the installer", () => {
-  it("copies the node_modules directory itself: electron-builder drops a root-level node_modules from any tree it copies", () => {
-    // A Windows checkout may carry CRLF; the capture must not end in \r.
-    const yml = fs.readFileSync(new URL("../electron-builder.yml", import.meta.url), "utf8").replace(/\r\n/g, "\n");
-    const entries = [...yml.matchAll(/from: (dist-native\/duckdb\/[^\n]+)\n\s+to: ([^\n]+)/g)].map((m) => [m[1], m[2]]);
-    expect(entries.length).toBeGreaterThanOrEqual(3);
-    for (const [from, to] of entries) {
-      expect(from, from).toMatch(/\/node_modules$/);
-      expect(to).toBe("duckdb/node_modules");
-    }
-  });
-});
-
 describe("the pin", () => {
   it("requires an exact x.y.z version of @resvg/resvg-js", () => {
     const { root } = flatInstall();
@@ -88,11 +75,10 @@ describe("the pin", () => {
     expect(() => pinnedDuckdbVersion(root)).toThrow(/found nothing/);
   });
 
-  it("stages both mac arches and x64 elsewhere", () => {
-    expect(targetsFor("darwin", {})).toEqual([{ platform: "darwin", arch: "arm64" }, { platform: "darwin", arch: "x64" }]);
-    expect(targetsFor("darwin", { OPENMAUSBOT_CUA_ARCHES: "arm64", OPENMAUSBOT_CUA_ARCHES_PARTIAL: "1" })).toEqual([{ platform: "darwin", arch: "arm64" }]);
-    expect(targetsFor("linux", {})).toEqual([{ platform: "linux", arch: "x64" }]);
-    expect(targetsFor("win32", {})).toEqual([{ platform: "win32", arch: "x64" }]);
+  it("stages this host's platform and CPU", () => {
+    expect(targetsFor("linux", "x64")).toEqual([{ platform: "linux", arch: "x64" }]);
+    expect(targetsFor("linux", "arm64")).toEqual([{ platform: "linux", arch: "arm64" }]);
+    expect(targetsFor("darwin", "arm64")).toEqual([{ platform: "darwin", arch: "arm64" }]);
   });
 });
 

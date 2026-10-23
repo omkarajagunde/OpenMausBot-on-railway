@@ -1,5 +1,5 @@
 import { Cloud } from "lucide-react";
-import type { CloudAccountBridge, CloudAccountState } from "../../electron/cloud-account.mjs";
+import type { CloudAccountBridge, CloudAccountState } from "../../shared/client/cloud-account.mjs";
 import type { CloudNoticeKind } from "@/lib/cloud-plan";
 import { t } from "@/lib/i18n";
 import type { LocaleKey } from "@/locales";

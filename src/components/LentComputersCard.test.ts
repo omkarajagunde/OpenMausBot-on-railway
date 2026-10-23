@@ -2,7 +2,7 @@
 import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import type { PageLending } from "../../electron/cloud-lending-ipc.mjs";
+import type { PageLending } from "../../shared/client/cloud-lending-ipc.mjs";
 import { setLocale } from "@/lib/i18n";
 
 const fixture = vi.hoisted(() => ({ api: vi.fn() }));

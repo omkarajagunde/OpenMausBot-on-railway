@@ -4,7 +4,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { Cloud, FolderOpen, MessageSquare, Repeat } from "lucide-react";
-import type { CloudOffer } from "../electron/cloud-home.mjs";
+import type { CloudOffer } from "../shared/client/cloud-home.mjs";
 import { CloudAddPanel, CloudAddSheet, type CloudAddActions, type CloudAddUi } from "@/components/CloudAddDialog";
 import { ChooseScreen } from "@/components/cloud-buy/ChooseScreen";
 import type { CloudAddView } from "@/lib/cloud-plan";

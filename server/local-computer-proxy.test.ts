@@ -3,10 +3,8 @@ import { once } from "node:events";
 import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import { createInterface } from "node:readline";
-import { createRequire } from "node:module";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { pathToFileURL } from "node:url";
 import { delimiter, dirname, join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { CONTROL_UNCONFIRMED } from "./control-client.ts";
@@ -34,7 +32,7 @@ readline.createInterface({input: process.stdin}).on("line", (line) => {
 `;
 
 describe("local computer proxy (isolated child and control endpoint)", () => {
-  it.each(["node", "electron"])("%s: keeps discovery lease-free, refuses contention and outages, and drains the final gated frame", async (runtime) => {
+  it("keeps discovery lease-free, refuses contention and outages, and drains the final gated frame", async () => {
     let held = true;
     let unavailable = false;
     let delayMs = 0;
@@ -57,27 +55,10 @@ describe("local computer proxy (isolated child and control endpoint)", () => {
       platform: "darwin" as const, scope: "local-computer" as const,
     };
     const control = { url: `http://127.0.0.1:${(server.address() as AddressInfo).port}/control`, token: "isolated-control-token" };
-    let connection = gatedLocalComputer(original, control);
+    const connection = gatedLocalComputer(original, control);
     const home = mkdtempSync(join(tmpdir(), "omb-cua-launch-"));
     let child: ChildProcess | undefined;
     try {
-      if (runtime === "electron") {
-        // Built inside Electron: in a Node-only process execPath hides a missing ELECTRON_RUN_AS_NODE. Never loads the user's app,
-        // daemon or data, and fails before spawning a malformed descriptor (which would launch a GUI).
-        const electron = createRequire(import.meta.url)("electron") as string;
-        const moduleUrl = new URL("./local-computer.ts", import.meta.url).href;
-        const bootstrap = spawnSync(electron, ["--input-type=module", "-e", `
-          const { gatedLocalComputer } = await import(${JSON.stringify(moduleUrl)});
-          const { original, control } = JSON.parse(process.env.OMB_FIXTURE_CONNECTION);
-          process.stdout.write(JSON.stringify(gatedLocalComputer(original, control)));
-        `], {
-          env: { ...process.env, HOME: home, USERPROFILE: home, ELECTRON_RUN_AS_NODE: "1", OMB_FIXTURE_CONNECTION: JSON.stringify({ original, control }) },
-          encoding: "utf8", timeout: 10_000,
-        });
-        expect(bootstrap.status, bootstrap.stderr).toBe(0);
-        connection = JSON.parse(bootstrap.stdout);
-        expect(pathToFileURL(connection.command).href).toBe(pathToFileURL(electron).href);
-      }
       expect(connection.env.ELECTRON_RUN_AS_NODE).toBe("1");
       child = spawn(connection.command, connection.args, { env: { ...process.env, ...connection.env,
         HOME: home, USERPROFILE: home, OMB_EXTRA_PATH: dirname(process.execPath), PATH: "",

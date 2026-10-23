@@ -5,7 +5,6 @@ Run the isolated integration recipe:
 ```sh
 pnpm exec vitest run server/full-access-workflows.e2e.test.ts
 pnpm exec vitest run server/team-setup-requests.test.ts server/profile-requests.test.ts server/routine-requests.test.ts
-pnpm exec electron scripts/smoke-approval-modes.cjs --all-threads-only
 pnpm typecheck
 pnpm lint
 ```

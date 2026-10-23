@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import type { CloudPlanSnapshot } from "../../electron/cloud-account.mjs";
+import type { CloudPlanSnapshot } from "../../shared/client/cloud-account.mjs";
 import { CLOUD_SETUP_HIDDEN, CLOUD_WELCOME_DONE, cloudWelcomeStage } from "@/lib/cloud-setup";
 import type { OnboardingStatus, WelcomeViewer } from "@/lib/onboarding";
 import { api, type Action, type ConfigStatus } from "@/state/store";

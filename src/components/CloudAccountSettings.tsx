@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import type { CloudAccountBridge, CloudAccountState, CloudPlanBridge, CloudPlanSnapshot } from "../../electron/cloud-account.mjs";
-import type { CloudCredit, CloudMachine, CloudTrial } from "../../electron/cloud-home.mjs";
-import { planTeam, teamPlan } from "../../electron/cloud-team-plan.mjs";
+import type { CloudAccountBridge, CloudAccountState, CloudPlanBridge, CloudPlanSnapshot } from "../../shared/client/cloud-account.mjs";
+import type { CloudCredit, CloudMachine, CloudTrial } from "../../shared/client/cloud-home.mjs";
+import { planTeam, teamPlan } from "../../shared/client/cloud-team-plan.mjs";
 import { cloudFilesBridge } from "@/lib/cloud-files";
 import { moveLine } from "@/lib/cloud-send";
 import { activeLocale, t } from "@/lib/i18n";

@@ -7,7 +7,7 @@ import { connect as tcpConnect, type AddressInfo, type Socket } from "node:net";
 import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { runDeviceLink } from "../../../electron/device-link.mjs";
+import { runDeviceLink } from "../../../shared/client/device-link.mjs";
 import { DeviceLinks } from "../../device-links.ts";
 
 import { botEngineSessions, killCliTree, spawnCli } from "../../procs.ts";

@@ -45,7 +45,7 @@ const EN_ALLOWED: Record<string, string> = {
 };
 
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
-const SCANNED = ["src", "server", "electron", "shared"];
+const SCANNED = ["src", "server", "shared"];
 // Test fixtures and generated output are not copy anyone reads.
 const SKIPPED_DIRS = new Set(["node_modules", "resources", "testing", "dist"]);
 const isSource = (name: string) => /\.(?:ts|tsx|mjs|cjs|js)$/.test(name) && !/\.test\.|\.node-test\.|\.d\.ts$/.test(name);
@@ -55,7 +55,7 @@ const ALLOWED: ReadonlyArray<{ file: string; snippet?: string; why: string }> = 
   { file: "shared/credential-request.ts", snippet: "when Boat is selected", why: "the card that asks for a person's own Boat key" },
   { file: "server/boat-create-idempotency.ts", snippet: "unnamed Boat", why: "own-key repair: boat.dev's own name for a machine" },
   { file: "server/workspace-backup.ts", snippet: "OMB-WORKSPACE-1", why: "a backup file's format marker" },
-  { file: "electron/company-backups.mjs", snippet: "OMB-WORKSPACE-1", why: "a backup file's format marker" },
+  { file: "shared/client/company-backups.mjs", snippet: "OMB-WORKSPACE-1", why: "a backup file's format marker" },
 ];
 
 function* sources(dir: string): Generator<string> {
@@ -119,7 +119,7 @@ describe("one name per thing", () => {
     expect([...new Set(offending)]).toEqual([]);
   });
 
-  it("hard-coded strings in src, server, electron and shared use the same words", () => {
+  it("hard-coded strings in src, server and shared use the same words", () => {
     const findings = hardcodedFindings();
     const offending = findings
       .filter((finding) => !ALLOWED.some((entry) => allows(entry, finding)))
@@ -150,10 +150,9 @@ describe("one name per thing", () => {
     const e = en as Record<string, string>;
     const source = (file: string) => readFileSync(join(ROOT, file), "utf8");
     const settings = `Settings → ${e["settings.section.cloudAccount"]}`;
-    const myCloud = /CLOUD_HOME_NAME = "([^"]+)"/.exec(source("electron/cloud-home.mjs"))?.[1];
-    const thisComputer = /id: "workspace-local", label: "([^"]+)"/.exec(source("electron/environments.cjs"))?.[1];
-    const serverMenuLocal = /\{ label: "([^"]+)", type: "radio", checked: !active/.exec(source("electron/menu.mjs"))?.[1];
-    expect([myCloud, thisComputer, serverMenuLocal]).toEqual([e["cloudSetup.myCloud"], e["place.local"], e["place.local"]]);
+    const myCloud = /CLOUD_HOME_NAME = "([^"]+)"/.exec(source("shared/client/cloud-home.mjs"))?.[1];
+    const thisComputer = /id: "workspace-local", label: "([^"]+)"/.exec(source("shared/client/environments.cjs"))?.[1];
+    expect([myCloud, thisComputer]).toEqual([e["cloudSetup.myCloud"], e["place.local"]]);
     const pointers: Array<[string, string[]]> = [
       ["cloudHome.connectHelp", [e["place.local"]!]],
       ["cloudPhone.step1", [myCloud!]],

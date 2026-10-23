@@ -47,9 +47,7 @@ Use only mapped, tested commands:
 - [Chat turns](chat-turns.md)
 - [Conversation context compaction](context-compaction.md)
 - [Work summaries and engine hooks](digests.md)
-- [OpenAI-compatible structured tools](openai-tools.md)
 - [Per-bot tool selection and local-model checks](tool-selection.md)
-- [OpenCode model variants through ACP](opencode-variants.md)
 - [Bot setup, model scope, and file continuity](bot-continuity.md)
 - [Reviewed Chief team setup and scoped deletion](team-setup.md)
 - [Profile proposal and credential-card lifecycle](proposal-cards.md)
@@ -61,7 +59,6 @@ Use only mapped, tested commands:
 - [Chat UI, driven headlessly](chat-ui.md)
 - [Computer panel focus hand-off](computer-panel-focus.md)
 - [Taking control of a bot's computer](take-control.md)
-- [Native dictation retention and send-to-stop](dictation.md)
 - [Proactive routines and the brief](proactive-routines.md)
 - [Chat widgets](widgets.md)
 - [Reactions](reactions.md)
@@ -72,20 +69,13 @@ Use only mapped, tested commands:
 - [In-chat team coordination](room-coordination.md)
 - [Chief access to additional teams](team-access.md)
 - [Engines and Doctor](engines.md)
-- [Cline engine and native loopback qualification](cline.md)
 - [Claude coordination and turn-scoped tools](claude-tool-lifecycle.md)
-- [Codex bot instructions](codex-instructions.md)
-- [Codex browser routing and native search](codex-browser-routing.md)
-- [Codex helper event isolation](codex-helpers.md)
-- [Qwen model route selection](qwen-models.md)
 - [Team backups](team-backups.md)
 - [Sharing a whole team](team-sharing.md)
 - [The organization library](org-library.md)
 - [Preset bots](presets.md)
 - [Teams and shared instructions](teams.md)
 - [Full workspace backups](workspace-backups.md)
-- [Optional company cloud backups](company-backups.md)
-- [Organization library: the desktop channel](desktop-library.md)
 - [Fleet: many workspaces on one server](fleet.md)
 - [Workspaces screen and the fleet agent](workspaces.md)
 - [Hosted workspace sign-in and revocation](hosted-workspaces.md)
@@ -105,15 +95,6 @@ built-in browser panel, and updater UI—is still not proven by the harness. Use
 the relevant Electron/package smoke test and state that limitation. Add a map
 entry only after the shared control surface can really drive it.
 
-The [switchable local environments recipe](local-environments.md) verifies
-creating, switching between and recovering named local environments by hand on
-a packaged desktop install; the control surface cannot drive it, so it is not
-in the map above.
-
-The [move to My Cloud fixture](cloud-send.md) runs this computer's server and a
-Cloud home with the desktop's own wiring between them, and runs and checks the
-one-time move as main does.
-
 The [MCP sign-in fixture](mcp-sign-in.md) checks remote sign-in, callback URL
 paste-back, MCP tools and logout cancellation through the real settings panel
 and a synthetic OAuth provider in a disposable workspace.
@@ -130,23 +111,6 @@ and the relay.
 The [Connected Apps OAuth fixture](connected-apps-oauth.md) checks blocked-popup
 recovery, safe authorization links and abandoned-account retries through real
 renderer components and isolated HTTP routes.
-
-The [desktop server connection smoke](desktop-server-connection.md) mounts the
-real Settings connection component in disposable Electron windows.
-
-The [loading screen and tray smoke](startup-tray.md) checks the startup close
-button, hidden handoff, tray restore, and Quit in a disposable Electron profile.
-
-The [optional organization connection smoke](organization-settings.md) checks
-the real Settings panel and production desktop client against a synthetic
-Admin server, including cancellation, revocation and unchanged normal startup.
-
-The [personal Cloud account smoke](cloud-account.md) checks optional browser
-sign-in, server-verified Pro status and sign-out in a disposable Electron profile.
-
-The [embedded server recovery smoke](desktop-server-recovery.md) crashes real
-Electron-owned fixture servers, verifies bounded recovery and private access,
-and proves quit cancels recovery without replaying an interrupted fixture turn.
 
 The [Tailscale discovery fixture](tailscale.md) checks standalone macOS CLI mode
 and HTTP tailnet endpoint refresh without touching a real Tailscale installation.
@@ -172,10 +136,6 @@ reads the recorded steps back through the server.
 
 The [Local VM resume fixture](local-vm-resume.md) checks idle stop, restart
 recovery, guarded resume and the stopped-to-ready Computer panel flow.
-
-The [local computer launch regression](local-computer-launch.md) starts the
-host CUA gate through real Electron in a disposable home, without opening the
-desktop app or controlling the user's computer.
 
 The [remote desktop viewer fixture](desktop-viewer.md) checks the bundled
 noVNC page, authenticated WebSocket proxy, desktop input, reconnect and logout
@@ -267,16 +227,6 @@ approvals and provider safety errors in an isolated desktop UI.
 The [automatic recovery fixture](automatic-recovery.md) checks opt-in, one-shot
 backup model dispatch after proven pre-prompt ACP failures, preserving the
 conversation, approval level and Stop/new-message precedence.
-
-The [skill approval lifecycle recipe](skill-approval-lifecycle.md) checks Deny,
-missing staged records and active-thread deletion in two isolated app windows,
-including the surviving conversation and sending again without deleting the bot.
-
-The [Codex account recipe](codex-account.md) checks account switching against an
-offline Codex CLI whose identity is synthetic and whose credential directory is empty.
-
-The [ChatGPT plan recipe](chatgpt-plan.md) checks the separate official OAuth
-flow, credential rotation, account ownership, and native Responses routing.
 
 The [mention fixture](mentions.md) checks candidate selection, composer highlighting,
 sent mentions, multiline scrolling and responsive wrapping in real chat views.

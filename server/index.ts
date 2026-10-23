@@ -175,7 +175,6 @@ import {
   llmThreadTitlesEnabled,
   stripWorkspaceCredentialEnv,
   PROVIDER_CREDENTIAL_ENV,
-  persistableInstanceConfigs,
   type AppConfig,
   vpsSshAlias,
   DATA_DIR, EVENTS_DIR,
@@ -237,7 +236,6 @@ import {
 import type { GroupGoalRunCardData, GroupGoalRunStatus } from "../shared/group-goal-run.ts";
 
 import { BUILT_IN_DRIVERS } from "./drivers/builtIn.ts";
-import { openCodeProviderKeysAllowed, setOpenCodeProviderKeyPolicy } from "./drivers/acp/opencode-go.ts";
 import { readMessageText, recallMessages, recentMessages, closeMessageSearch, closeMessageDb, chatFollowups, cancelledChatFollowup, settleChatFollowups, threadsReferencing, logNotification, lastRowAt } from "./message-db.ts";
 import { briefCrossingLabel, claimRecallCrossings, recallCrossingLabel } from "./recall-disclosure.ts";
 import { parseSince, parseUntil, recentWork, recentWorkPrompt, turnOutcomeLine } from "./recent-work.ts";
@@ -519,6 +517,8 @@ import { applyPendingWorkspaceRestore, readLastWorkspaceRestore, type WorkspaceR
 import { repairMovedWorkspacePaths } from "./moved-paths-repair.ts";
 import { createCustomDomainVerifier, customDomainIpv4, normalizeCustomDomain } from "./custom-domain.ts";
 import { allowedScopes, createEmailSignIn, parseAllowList } from "./account-signin.ts";
+import { passwordSignInFromBoot } from "./password-sign-in.ts";
+import { createPasswordSignInRoute } from "./routes/password-sign-in.ts";
 import { ProviderAuthSessions } from "./provider-auth-sessions.ts";
 import {
   clearSessionCookie,
@@ -612,8 +612,6 @@ import { createBrowserViewerRoutes } from "./routes/browser-viewers.ts";
 import { localDesktopTarget, localVmViewerStatus } from "./desktop-viewer-targets.ts";
 import { viewerTargetId } from "../shared/desktop-viewer.ts";
 import { createComputerPreviews } from "./computer-previews.ts";
-import { createAntigravityLeftoverRoutes } from "./routes/antigravity-leftovers.ts";
-import { createAntigravityAccountRoutes } from "./routes/antigravity-accounts.ts";
 import { createConfigRoutes } from "./routes/config.ts";
 import { createInstanceRoutes } from "./routes/instances.ts";
 import { createMcpServerRoutes } from "./routes/mcp-servers.ts";
@@ -621,7 +619,6 @@ import { teamAdminSummary } from "./cloud-team-admin.ts";
 import { createSetupImportRoutes } from "./routes/setup-import.ts";
 import { createComputerRoutes } from "./routes/computers.ts";
 import { createStatusRoutes } from "./routes/status.ts";
-import { findAntigravityLeftovers, removeAntigravityLeftovers } from "./drivers/antigravity-temp.ts";
 import { createLiveRoutes } from "./routes/live.ts";
 import { createNotificationRoutes } from "./routes/notifications.ts";
 import { createTodayRoutes } from "./routes/today.ts"; import { createSidebarSectionRoutes } from "./routes/sidebar-sections.ts";
@@ -729,6 +726,7 @@ if (CLOUD_HOME) {
 }
 holdIncludedServices(CLOUD_ENV);
 for (const key of CLOUD_HOME_SECRET_KEYS) delete process.env[key];
+const passwordSignIn = passwordSignInFromBoot(CLOUD_ENV);
 await startBotBoxAtBoot({ dataDir: DATA_DIR, port: PORT }); // The bot box (server/bot-box): on a Cloud home every bot turn runs in it, decided before any engine starts.
 if (CLOUD_HOME && Object.keys(CLOUD_SECRETS).length === 0) {
   console.warn("cloud home: its secrets came in this process's environment, which anything running as the same user can read in /proc; start it with cloud-home-start");
@@ -1146,10 +1144,7 @@ function canManageCommandAllowlist(auth: RequestAuth): boolean {
   return auth.kind === "loopback" ? auth.trust !== "service" : auth.scopes.includes("admin");
 }
 
-const COMMAND_ALLOWLIST_DRIVERS = new Set([
-  "claudeAgent", "codex", "antigravityAgent", "grokAgent", "opencodeGo", "kimiAgent",
-  "droidAgent", "cursorAgent", "qwenAgent", "geminiAgent", "hermesAgent", "customAcp",
-]);
+const COMMAND_ALLOWLIST_DRIVERS = new Set(["claudeAgent"]);
 
 function commandAllowlistResponse(bot: BotRecord): CommandAllowlistResponse {
   const instance = registry.get(bot.modelSelection.instanceId);
@@ -1537,27 +1532,6 @@ const mcpOAuth = new McpOAuthManager({
     return parsed?.ok && isRemoteMcpServer(parsed.server) && parsed.server.url === url ? parsed.server.oauth : undefined;
   },
 });
-// OpenCode reads provider keys (ANTHROPIC_API_KEY, OPENAI_API_KEY, …) from its environment. Wired before the first catalog probe below.
-let openCodeOrganisationManaged = (): boolean => false;
-const openCodeKeysAllowed = (): boolean => openCodeProviderKeysAllowed({
-  cloudHome: Boolean(CLOUD_HOME),
-  hostedWorkspace: HOSTED_WORKSPACE,
-  organisationManaged: openCodeOrganisationManaged(),
-  sharedSignIn: sharedSignIn(signInAllowList()),
-});
-setOpenCodeProviderKeyPolicy(openCodeKeysAllowed);
-let openCodeKeysLastAllowed = openCodeKeysAllowed();
-/** OpenCode lists a provider's models only while it may read that provider's key. */
-function resyncOpenCodeProviderKeys(): void {
-  const allowed = openCodeKeysAllowed();
-  if (allowed === openCodeKeysLastAllowed) return;
-  openCodeKeysLastAllowed = allowed;
-  for (const instance of registry.instances()) {
-    if (instance.driverKind !== "opencodeGo") continue;
-    void registry.refreshModels(instance.instanceId)
-      .then(() => broadcast({ kind: "config", ...configStatus() }), () => {});
-  }
-}
 await registry.load(providerConfigs(), decorateHostedProvider);
 const bundledSkills = loadBundledSkills();
 const availableSkills = () => mergeSkills(bundledSkills, loadUserSkills(join(DATA_DIR, "skills")));
@@ -1653,7 +1627,6 @@ let companyRuntimeReady!: () => void;
 const companyRuntimeStarted = new Promise<void>(resolve => { companyRuntimeReady = resolve; });
 const managedPolicy = new ManagedDesktopPolicy({ onChange: () => {
   broadcast({ kind: "config", ...configStatus() });
-  resyncOpenCodeProviderKeys();
 } });
 onKeyRejectionChange(() => { registry.forgetSnapshots(); broadcast({ kind: "config", ...configStatus() }); });
 function computerPlaceRefusal(kind: ComputerKind): { message: string; code: "cloud_home" | "managed_policy" } | undefined {
@@ -1673,13 +1646,11 @@ const managedDesktop = new ManagedDesktopProviders({
   migrate: aliases => { store.renameInstances(new Map(aliases.map(({ from, to }) => [from, to]))); },
   onAvailability: () => {
     broadcast({ kind: "config", ...configStatus() });
-    resyncOpenCodeProviderKeys();
   },
   afterReplace: ids => {
     for (const id of providerInstancesChanging) if (managedDesktop.owns(id)) providerInstancesChanging.delete(id);
     bus.attach(ids.flatMap(id => { const instance = registry.get(id); return instance ? [instance] : []; }));
     broadcast({ kind: "config", ...configStatus() });
-    resyncOpenCodeProviderKeys();
   },
 });
 const cloudCredit = CLOUD_HOME ? new CloudCreditProvider({
@@ -1694,7 +1665,6 @@ const cloudCredit = CLOUD_HOME ? new CloudCreditProvider({
 const cloudCreditStarted = (cloudCredit?.start() ?? Promise.resolve()).catch((error) => {
   console.warn(`[trial credit] could not start: ${error instanceof Error ? error.message : String(error)}`);
 });
-openCodeOrganisationManaged = () => managedPolicy.current() !== null || managedDesktop.enrolled();
 utilityParentPort?.on("message", event => {
   const message = event.data as { type?: unknown; requestId?: unknown; identity?: unknown } | undefined;
   if (message?.type !== "openmausbot:managed-desktop-identity") return;
@@ -12908,8 +12878,6 @@ async function describeInstances() {
       ...described, ...policy, readOnly: true, managed: managedDesktop.info(instance.instanceId),
       install: undefined, authentication: undefined, cli: undefined, cliCandidates: [],
     };
-      // Windows keeps what Antigravity's runtime unpacked whenever it is stopped by force.
-    if (instance.driverKind === "antigravityAgent" && process.platform === "win32") return { ...described, ...policy, freeUpSpace: true };
     if (entry?.driver !== "claudeAgent") return { ...described, ...policy };
     if (instance.instanceId === CLAUDE_API_INSTANCE) {
       return { ...described, ...policy, authentication: undefined, install: { ...instance.install, signInCommand: undefined } };
@@ -13386,22 +13354,6 @@ ROUTES.push(createUndoRoutes({
   refusal: (auth, threadId, requestId) => cardAnswerRefusal(auth, threadId, requestId, "allow"),
   undo: (auth, res, threadId, requestId) => withDecisionActor(decisionActorFor(auth), () => undoAppliedChange(res, threadId, requestId)),
 }));
-ROUTES.push(createAntigravityLeftoverRoutes({
-  hosted: Boolean(hostedModels),
-  isAntigravity: (instanceId) => registry.get(instanceId)?.driverKind === "antigravityAgent",
-  find: () => findAntigravityLeftovers(),
-  remove: () => removeAntigravityLeftovers(),
-}));
-ROUTES.push(createAntigravityAccountRoutes({
-  instances: () => persistableInstanceConfigs(cfg),
-  persist: persistProviderInstance,
-  describe: describeInstances,
-  exclusive: (work) => {
-    if (providerConfigBusy) return null;
-    providerConfigBusy = true;
-    return work().finally(() => { providerConfigBusy = false; });
-  },
-}));
 ROUTES.push(createConfigRoutes({
   store, cfg, registry, sessions, browserCleanup, browserLive, browserRuntime, usedBrowserSessions, decider,
   sharedComputers, sharedComputerControl, closeBrowser, browserEngineSwitched,
@@ -13413,7 +13365,7 @@ ROUTES.push(createConfigRoutes({
   providerConfigBusy: { get: () => providerConfigBusy, set: (busy) => { providerConfigBusy = busy; } },
   computerProviderConfigTransitions, managedBoatOwners, providerOperationConflict, perBotLocalVmCountForModeChange,
   checkedModelSelection, policyModelRefusal, browserSessionSpec, configStatus, configForAccess,
-  resyncOpenCodeProviderKeys, revokeEngineCapabilities, reloadProviders, broadcast, drainQueuedSends,
+  revokeEngineCapabilities, reloadProviders, broadcast, drainQueuedSends,
 }));
 ROUTES.push(createInstanceRoutes({
   store, cfg, registry, sessions, providerAuthSessions,
@@ -13578,6 +13530,7 @@ ROUTES.push(createLiveRoutes({
   },
 }));
 
+const passwordSignInRoute = createPasswordSignInRoute({ passwords: passwordSignIn, sessions, cookieName: SESSION_COOKIE });
 const toolResults = new ToolResults();
 const handleRequest = async (req: IncomingMessage, res: ServerResponse) => {
   let url: URL;
@@ -13603,7 +13556,7 @@ const handleRequest = async (req: IncomingMessage, res: ServerResponse) => {
     }
     // Hosted workspaces have one sign-in authority: a missing optional layer must never reactivate email/QR credential minting.
     if (HOSTED_WORKSPACE) {
-      if (method === "POST" && ["/api/auth/pair", "/api/pair", "/api/auth/pairing", "/api/auth/email/start", "/api/auth/email/verify"].includes(path)) {
+      if (method === "POST" && ["/api/auth/pair", "/api/pair", "/api/auth/pairing", "/api/auth/email/start", "/api/auth/email/verify", "/api/auth/password"].includes(path)) {
         return json(res, 403, { error: "Sign in through the workspace portal." });
       }
       if (workspaceAccess) {
@@ -13612,7 +13565,7 @@ const handleRequest = async (req: IncomingMessage, res: ServerResponse) => {
         return json(res, 503, { error: "Workspace sign-in is unavailable." });
       }
     }
-    if (method === "POST" && ["/api/auth/pair", "/api/pair", "/api/auth/pairing", "/api/auth/email/start", "/api/auth/email/verify"].includes(path)) {
+    if (method === "POST" && ["/api/auth/pair", "/api/pair", "/api/auth/pairing", "/api/auth/email/start", "/api/auth/email/verify", "/api/auth/password"].includes(path)) {
       const refusal = managedPolicy.remoteAccessRefusal();
       if (refusal) return json(res, 403, { error: refusal, code: "managed_policy" });
     }
@@ -13628,7 +13581,7 @@ const handleRequest = async (req: IncomingMessage, res: ServerResponse) => {
     // Two public routes come first; everything else needs the loopback owner or a paired session with the right scope.
     if (method === "GET" && !path.startsWith("/api/") && !path.startsWith("/.well-known/") && (moveFreeze.screen(path) ? (res.writeHead(302, { location: moveFreeze.screen(path)!, "cache-control": "no-store" }).end(), true) : serveStatic(res, path))) return;
     if (method === "GET" && path === "/.well-known/openmausbot/environment") {
-      return json(res, 200, environmentDescriptor({ environmentId: ENVIRONMENT_ID, ...TEAM_LABEL, desktopManaged: DESKTOP_MANAGED, emailSignIn: !HOSTED_WORKSPACE && !CLOUD_HOME && emailSignIn.enabled(), sharedComputers: lendingEnabled(), cloudHome: Boolean(CLOUD_HOME) }));
+      return json(res, 200, environmentDescriptor({ environmentId: ENVIRONMENT_ID, ...TEAM_LABEL, desktopManaged: DESKTOP_MANAGED, emailSignIn: !HOSTED_WORKSPACE && !CLOUD_HOME && emailSignIn.enabled(), passwordSignIn: !HOSTED_WORKSPACE && passwordSignIn.enabled(), sharedComputers: lendingEnabled(), cloudHome: Boolean(CLOUD_HOME) }));
     }
     const domainCheck = /^\/\.well-known\/openmausbot\/domain-check\/([a-f0-9]{64})$/.exec(path);
     if (method === "GET" && domainCheck) {
@@ -13707,6 +13660,7 @@ const handleRequest = async (req: IncomingMessage, res: ServerResponse) => {
       }
       return json(res, 200, { token: result.token, session: result.session, environment });
     }
+    if (await passwordSignInRoute({ req, res, path, method })) return;
     // The companion apps' pairing route: same window, lockout and single-use exchange as /api/auth/pair; redeeming the credential IS the sign-in.
     if (method === "POST" && path === "/api/pair") {
       if (!/^application\/json\b/i.test(String(req.headers["content-type"] ?? ""))) {

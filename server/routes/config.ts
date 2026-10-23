@@ -87,7 +87,6 @@ export interface ConfigRouteDeps {
   browserSessionSpec(binaryPath: string, session: string, profile: string | undefined): { command: string; env: Record<string, string> };
   configStatus(): ConfigStatus;
   configForAccess(status: ConfigStatus, admin: boolean): unknown;
-  resyncOpenCodeProviderKeys(): void;
   revokeEngineCapabilities(engines: ReadonlySet<string>): void;
   reloadProviders(before: Record<string, unknown>): Promise<void>;
   broadcast(payload: Record<string, unknown>): void;
@@ -101,7 +100,7 @@ export function createConfigRoutes(deps: ConfigRouteDeps): RouteHandler {
     localVmIdleMs, localVmIdles, localVmActiveThreads, localVmLifecycleBusy, localVmImageBusy, localVmModeChangeBusy,
     providerConfigBusy, computerProviderConfigTransitions, managedBoatOwners, providerOperationConflict,
     perBotLocalVmCountForModeChange, checkedModelSelection, policyModelRefusal, browserSessionSpec, configStatus,
-    configForAccess, resyncOpenCodeProviderKeys, revokeEngineCapabilities, reloadProviders, broadcast, drainQueuedSends,
+    configForAccess, revokeEngineCapabilities, reloadProviders, broadcast, drainQueuedSends,
   } = deps;
   return async ({ req, res, url, path, method, auth, json, readBody }) => {
     // API keys are never echoed back: booleans only.
@@ -543,7 +542,6 @@ export function createConfigRoutes(deps: ConfigRouteDeps): RouteHandler {
       let browserReferenceCleanupError: unknown = null;
       if (patch.signIn !== undefined) {
         sessions.revalidateEmailSessions();
-        resyncOpenCodeProviderKeys();
       }
       if (!lendingEnabled()) {
         sharedComputers.close();

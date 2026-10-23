@@ -20,7 +20,7 @@ person connects their own AI ([Trial Claude credit](#trial-claude-credit)).
 
 This page is the OpenMausBot half of a contract with three parties:
 
-- **the home machine**: this repository's `cloud-home` image (`Dockerfile`, `deploy/fly/`);
+- **the home machine**: this repository's `cloud-home` image (`deploy/docker/Dockerfile`, `deploy/fly/`);
 - **the Admin** (openmaus-cloud, `docs/consumer-cloud.md` there): provisions
   the app, holds the machine's signing secret, and answers the desktop's Cloud
   session;
@@ -978,7 +978,7 @@ the `list_shared_computers` and `shared_computer` tools.
 
 ## The image
 
-The `Dockerfile`'s `cloud-home` target shares the server image's runtime
+The `deploy/docker/Dockerfile` `cloud-home` target shares the server image's runtime
 layers (Node, Chrome's libraries, agent-browser and its Chrome) and adds:
 
 - Caddy (`deploy/fly/Caddyfile`), as the only listener the network can reach
@@ -994,7 +994,7 @@ layers (Node, Chrome's libraries, agent-browser and its Chrome) and adds:
   any file under `/app`, or Caddy, is not root's or is writable by others.
 
 ```sh
-docker build --target cloud-home -t omb-cloud-home .
+docker build -f deploy/docker/Dockerfile --target cloud-home -t omb-cloud-home .
 ```
 
 The app files are the last layers, so an image built from a later commit
@@ -1969,7 +1969,7 @@ tests.
 
 Every push to `main` and every release tag publishes the home machine image as
 `ghcr.io/milind-soni/openmausbot-cloud-home`, tagged `latest` (main only), `sha-<commit>` and the release tag.
-It is the `Dockerfile`'s `cloud-home` target for the same commit, with Grok and the current Claude Code and
+It is `deploy/docker/Dockerfile`'s `cloud-home` target for the same commit, with Grok and the current Claude Code and
 Codex installed. The Docker workflow's summary prints the digest. Set it in the Admin as
 `OMB_CLOUD_HOME_IMAGE=ghcr.io/milind-soni/openmausbot-cloud-home@sha256:…`; changing it rolls the new image
 out to existing machines one at a time, reverting automatically on a failed health check.

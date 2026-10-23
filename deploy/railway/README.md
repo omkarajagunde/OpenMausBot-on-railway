@@ -9,7 +9,7 @@ and talk to your bots.
 
 1. **Create the service.** In Railway, choose *New project → Deploy from GitHub
    repo* and pick this repository. `railway.json` at the root makes Railway
-   build `deploy/railway/Dockerfile`.
+   build the root `Dockerfile`.
 2. **Set the password.** Under the service's *Variables*, add
    `OMB_ADMIN_PASSWORD` with at least 12 characters. The container refuses to
    start without it.
@@ -65,7 +65,7 @@ and talk to your bots.
 ## Run the image locally
 
 ```sh
-docker build -f deploy/railway/Dockerfile -t openmausbot-railway .
+docker build -t openmausbot-railway .
 docker run --rm -p 8080:8080 -e OMB_EDGE_SCHEME=http -e OMB_ADMIN_PASSWORD='a long password here' \
   -v omb-railway-data:/data openmausbot-railway
 ```

@@ -11,6 +11,7 @@ services:
   omb:
     build:
       context: ..
+      dockerfile: deploy/docker/Dockerfile
       args:
         ENGINES: ${ENGINES:-}
     # prebuilt on every main push; `docker compose up --build` builds from source instead

@@ -239,7 +239,7 @@ base the app prints on new hooks because the stack sets
 
 What the stack does, so you can adapt it:
 
-- [`Dockerfile`](../Dockerfile) builds the UI and the self-contained
+- [`deploy/docker/Dockerfile`](../deploy/docker/Dockerfile) builds the UI and the self-contained
   server bundle, and runs them as an unprivileged user with `HOME=/data`.
   `--build-arg ENGINES="…"` (or `ENGINES=` in `.env`) bakes engine CLIs
   into the image.

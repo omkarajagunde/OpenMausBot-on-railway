@@ -91,7 +91,7 @@ export async function startRailway(env: NodeJS.ProcessEnv = process.env): Promis
   const edgeConfig = env.OMB_EDGE_CONFIG || "/app/railway/Caddyfile";
   if (ids) {
     const problem = codeTrustProblem([process.execPath, fileURLToPath(import.meta.url), join(here, "index.js"), edgeBin, edgeConfig], home);
-    if (problem) throw new Error(`This image's code is not safe to run as root: ${problem}. Rebuild it from deploy/railway/Dockerfile.`);
+    if (problem) throw new Error(`This image's code is not safe to run as root: ${problem}. Rebuild it from the repository's Dockerfile.`);
   }
   const { server, edge } = railwayChildEnvironments(env, home);
   const secrets = { [ADMIN_PASSWORD_HASH_ENV]: hash };

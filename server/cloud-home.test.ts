@@ -368,7 +368,7 @@ it("ships an edge and a Fly template that keep the server private", () => {
   expect(caddy.slice(homeStart, homeEnd)).toContain("handle /hooks/* {");
   expect(caddy.match(/header_up X-Forwarded-For \{client_ip\}/g)).toHaveLength(upstreams.length);
   // The root supervisor's code is root's, maus owns only the volume; the image's last step refuses to build otherwise.
-  const dockerfile = readFileSync(join(import.meta.dirname, "../Dockerfile"), "utf8");
+  const dockerfile = readFileSync(join(import.meta.dirname, "../deploy/docker/Dockerfile"), "utf8");
   const image = dockerfile.slice(dockerfile.indexOf("FROM runtime AS cloud-home"), dockerfile.indexOf("FROM runtime AS server"));
   const check = image.indexOf('untrusted="$(find /app /usr/local/bin/caddy \\( ! -user root -o ! -type l -perm /022 \\) -print)"');
   expect(image.slice(check)).toMatch(/^untrusted=.*\n && if \[ -n "\$untrusted" \]; then .*exit 1; fi \\\n/);

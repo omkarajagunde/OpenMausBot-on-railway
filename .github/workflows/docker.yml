@@ -36,7 +36,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Build image
-        run: docker build -t openmausbot:ci .
+        run: docker build -f deploy/docker/Dockerfile -t openmausbot:ci .
       - name: Boot the container and prove the server + UI answer
         run: |
           set -euo pipefail
@@ -170,7 +170,7 @@ jobs:
         # included models, and tells the paired app to open its engine sign-in.
         run: |
           set -euo pipefail
-          docker build --target cloud-home --build-arg CLOUD_HOME_ENGINES= -t omb-cloud-home:ci .
+          docker build -f deploy/docker/Dockerfile --target cloud-home --build-arg CLOUD_HOME_ENGINES= -t omb-cloud-home:ci .
           rand43() { openssl rand -base64 32 | tr '+/' '-_' | tr -d '=\n'; }
           b64url() { base64 | tr '+/' '-_' | tr -d '=\n'; }
           secret=$(rand43)
@@ -356,6 +356,7 @@ jobs:
       - uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           context: .
+          file: deploy/docker/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -382,6 +383,7 @@ jobs:
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           context: .
+          file: deploy/docker/Dockerfile
           target: cloud-home
           build-args: |
             CHROME_CACHE_TAG=${{ steps.keys.outputs.chrome }}

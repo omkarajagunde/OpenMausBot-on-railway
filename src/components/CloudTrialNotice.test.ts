@@ -1,8 +1,8 @@
 import { Children, createElement, isValidElement, type EffectCallback, type ReactElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { CloudPlanBridge, CloudPlanSnapshot } from "../../electron/cloud-account.mjs";
-import type { CloudTrial } from "../../electron/cloud-home.mjs";
+import type { CloudPlanBridge, CloudPlanSnapshot } from "../../shared/client/cloud-account.mjs";
+import type { CloudTrial } from "../../shared/client/cloud-home.mjs";
 import { cloudTrialView } from "@/lib/cloud-plan";
 import { setLocale } from "@/lib/i18n";
 

@@ -159,7 +159,6 @@ such as a standalone one, counts every process start.
 
 ```sh
 pnpm exec vitest run server/routines.test.ts server/routines-startup.test.ts server/routine-requests.test.ts server/drivers/agents-proxy.test.ts shared/package-format.test.ts server/package-export.test.ts server/package-import.test.ts
-node --test electron/server-child-launch.node-test.mjs
 ```
 
 ## Evidence and cleanup

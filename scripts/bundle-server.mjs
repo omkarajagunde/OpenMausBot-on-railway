@@ -93,7 +93,7 @@ await build({
 // `openmausbot serve --tunnel` spawns the connector guardian as its own
 // process, so it must exist as a file beside the server.
 await build({
-  entryPoints: [join(root, "electron", "managed-companion-guardian-main.mjs")],
+  entryPoints: [join(root, "shared", "client", "managed-companion-guardian-main.mjs")],
   bundle: true,
   platform: "node",
   target: "node20",
@@ -132,10 +132,6 @@ if (existsSync(join(root, "enterprise", "server", "index.ts"))) {
   });
   copyFileSync(join(root, "enterprise", "LICENSE"), join(root, "dist-server", "enterprise", "LICENSE"));
 }
-
-// The packaged desktop forks this bootstrap to turn on Node's compile cache.
-// Copied, not bundled: esbuild would inline index.js into it.
-copyFileSync(join(root, "scripts", "desktop-server-entry.mjs"), join(root, "dist-server", "desktop-entry.mjs"));
 
 // The model catalog snapshot (server/model-catalog/catalog.ts) is read from
 // disk, not inlined: 1.5 MB of JSON has no place in index.js. The bundle looks

@@ -1,7 +1,7 @@
 // The narrow bridge the Electron preload exposes. Absent in the browser.
 
 declare global {
-  type CompanyBackupEntry = Omit<import("../../electron/company-backups.mjs").CompanyBackupMetadata, "status"> & { status: "creating" | "uploading" | "completing" | "ready" | "cleanup" };
+  type CompanyBackupEntry = Omit<import("../../shared/client/company-backups.mjs").CompanyBackupMetadata, "status"> & { status: "creating" | "uploading" | "completing" | "ready" | "cleanup" };
   interface CompanyBackupScheduleState {
     enabled: boolean;
     status: "off" | "waiting" | "running" | "paused" | "error";
@@ -14,7 +14,7 @@ declare global {
     busy: boolean;
     pendingRestore?: boolean;
     kind?: "backup" | "restore";
-    progress?: import("../../electron/company-backups.mjs").CompanyBackupProgress;
+    progress?: import("../../shared/client/company-backups.mjs").CompanyBackupProgress;
     message?: string;
     lastBackupAt?: number;
     schedule?: CompanyBackupScheduleState;
@@ -22,9 +22,9 @@ declare global {
 /** The package.json version, inlined by Vite's define at build time. */
 const __APP_VERSION__: string;
 
-  type DesktopSharedFolder = import("../../electron/computer-sharing.mjs").SharedFolder;
-  type DesktopComputerSharing = import("../../electron/computer-sharing.mjs").SharingState;
-  type DesktopLendingActivity = import("../../electron/computer-sharing.mjs").LendingActivityEntry;
+  type DesktopSharedFolder = import("../../shared/client/computer-sharing.mjs").SharedFolder;
+  type DesktopComputerSharing = import("../../shared/client/computer-sharing.mjs").SharingState;
+  type DesktopLendingActivity = import("../../shared/client/computer-sharing.mjs").LendingActivityEntry;
 
   type DesktopCapabilities = {
     host: {
@@ -114,22 +114,22 @@ const __APP_VERSION__: string;
   interface Window {
     ogb?: {
       platform: NodeJS.Platform;
-      organization?: import("../../electron/managed-desktop.mjs").ManagedDesktopBridge;
-      cloudAccount?: import("../../electron/cloud-account.mjs").CloudAccountBridge;
+      organization?: import("../../shared/client/managed-desktop.mjs").ManagedDesktopBridge;
+      cloudAccount?: import("../../shared/client/cloud-account.mjs").CloudAccountBridge;
       /** "Let my bots use this Mac" (this PC, this computer), on My Cloud's own page in this app: its one switch and
        * what is lent (electron/cloud-lending-ipc.mjs). `open` shows this computer's own Settings, leaving the page. */
-      cloudLending?: { open(): Promise<void>; state?(): Promise<import("../../electron/cloud-lending-ipc.mjs").PageLending>; set?(on: boolean): Promise<import("../../electron/cloud-lending-ipc.mjs").PageLending>; screen?(on: boolean): Promise<import("../../electron/cloud-lending-ipc.mjs").PageLending>;
+      cloudLending?: { open(): Promise<void>; state?(): Promise<import("../../shared/client/cloud-lending-ipc.mjs").PageLending>; set?(on: boolean): Promise<import("../../shared/client/cloud-lending-ipc.mjs").PageLending>; screen?(on: boolean): Promise<import("../../shared/client/cloud-lending-ipc.mjs").PageLending>;
         /** A bot's Use my Mac link: this app's own popup, which turns on every part of Let my bots use this Mac. */
         offer?(): Promise<void> };
       /** Either page in this app: the one-time move's line (on its way, what arrived, coming home). */
-      cloudSendPage?: import("../../electron/cloud-send.mjs").CloudSendPageBridge;
+      cloudSendPage?: import("../../shared/client/cloud-send.mjs").CloudSendPageBridge;
       /** Settings on the person's own Cloud: the plan, read only. */
-      cloudPlan?: import("../../electron/cloud-account.mjs").CloudPlanBridge;
+      cloudPlan?: import("../../shared/client/cloud-account.mjs").CloudPlanBridge;
       /** This computer's page, and My Cloud's own page once it is the person's home: the window onto My Cloud. */
-      home?: import("../../electron/home-window.mjs").HomeBridge;
-      desktopNotices?: import("../../electron/desktop-prefs.mjs").DesktopNoticesBridge;
-      desktopAnalytics?: import("../../electron/desktop-prefs.mjs").DesktopAnalyticsBridge;
-      desktopLanguage?: import("../../electron/desktop-prefs.mjs").DesktopLanguageBridge;
+      home?: import("../../shared/client/home-window.mjs").HomeBridge;
+      desktopNotices?: import("../../shared/client/desktop-prefs.mjs").DesktopNoticesBridge;
+      desktopAnalytics?: import("../../shared/client/desktop-prefs.mjs").DesktopAnalyticsBridge;
+      desktopLanguage?: import("../../shared/client/desktop-prefs.mjs").DesktopLanguageBridge;
       companyBackups?: {
         state(): Promise<CompanyBackupState>;
         list(): Promise<{ backups: CompanyBackupEntry[]; usedBytes: number; limits: { ownerQuotaBytes: number; retainedSnapshots: number } }>;

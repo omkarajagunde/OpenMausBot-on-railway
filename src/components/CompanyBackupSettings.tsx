@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { ManagedDesktopState } from "../../electron/managed-desktop.mjs";
+import type { ManagedDesktopState } from "../../shared/client/managed-desktop.mjs";
 import type { WorkspaceBackupSummary } from "../../shared/workspace-backup";
 import { activeLocale, t } from "@/lib/i18n";
 import { collectWorkspaceClientState, WORKSPACE_RESTORE_MARKER } from "@/lib/workspace-backup-client";

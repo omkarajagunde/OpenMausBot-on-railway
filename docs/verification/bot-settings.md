@@ -104,7 +104,6 @@ Automated coverage:
 
 ```sh
 pnpm exec vitest run server/new-bot-defaults.test.ts server/new-bot-defaults.e2e.test.ts src/lib/bot-creation-draft.test.ts src/lib/create-configured-bot.test.ts src/components/NewBotDialog.test.ts
-node --test electron/approval-trusted-mode.node-test.mjs
 ```
 
 The HTTP tests launch a fresh temporary server. They cover defaults persistence,

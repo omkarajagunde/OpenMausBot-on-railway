@@ -1,7 +1,7 @@
 import { Children, createElement, isValidElement, type EffectCallback, type ReactElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import type { CloudAccountBridge, CloudAccountState } from "../../electron/cloud-account.mjs";
+import type { CloudAccountBridge, CloudAccountState } from "../../shared/client/cloud-account.mjs";
 import { setLocale } from "@/lib/i18n";
 const f = vi.hoisted(() => ({ values: [] as unknown[], index: 0, effects: [] as EffectCallback[], platform: "darwin" as DesktopCapabilities["host"]["platform"] }));
 vi.mock("react", async original => ({ ...await original<typeof import("react")>(),

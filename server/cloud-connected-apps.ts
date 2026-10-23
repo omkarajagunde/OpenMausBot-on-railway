@@ -10,9 +10,9 @@ import {
   managedComposioAccess,
   type ManagedComposioAccess,
   type ManagedComposioCredentials,
-} from "../electron/managed-composio.mjs";
+} from "../shared/client/managed-composio.mjs";
 import { writeFileAtomic } from "./atomic.ts";
-import { managedComposioBrokerUrl } from "../electron/managed-composio.mjs";
+import { managedComposioBrokerUrl } from "../shared/client/managed-composio.mjs";
 
 /** In the data folder; excluded from backups (workspace-backup-policy.ts), so a restore keeps the Cloud's own. */
 export const CLOUD_CONNECTED_APPS_FILE = "connected-apps-installation.json";

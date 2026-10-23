@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { CloudUpload, Loader2 } from "lucide-react";
-import { MOVE_LINE } from "../../electron/cloud-send-parts.mjs";
-import type { CloudSendNotice, CloudSendPageBridge } from "../../electron/cloud-send.mjs";
+import { MOVE_LINE } from "../../shared/client/cloud-send-parts.mjs";
+import type { CloudSendNotice, CloudSendPageBridge } from "../../shared/client/cloud-send.mjs";
 import { ipcErrorText, moveLine, moveQuietUntil } from "@/lib/cloud-send";
 import { t } from "@/lib/i18n";
 import { TeamMoveLine } from "./MoveToTeam";

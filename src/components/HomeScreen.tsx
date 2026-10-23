@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { t } from "@/lib/i18n";
 import type { LocaleKey } from "@/locales";
-import type { HomeView, HomeBridge } from "../../electron/home-window.mjs";
+import type { HomeView, HomeBridge } from "../../shared/client/home-window.mjs";
 import { CloudSetupSteps } from "./CloudSetupSteps";
 
 const MACHINE: Record<string, LocaleKey> = {

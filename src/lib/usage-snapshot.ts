@@ -1,6 +1,6 @@
 // Security: the daily snapshot is counts, booleans and allowlisted words. Names, emails, ids, URLs, labels and
 // timestamps from the inputs never reach the event; only lengths, flags and allow() results do.
-import type { CloudAccountState, CloudPlanSnapshot } from "../../electron/cloud-account.mjs";
+import type { CloudAccountState, CloudPlanSnapshot } from "../../shared/client/cloud-account.mjs";
 import { engineReady } from "@/components/EngineLibrary";
 import { analyticsEnabled, track } from "@/lib/analytics";
 import {

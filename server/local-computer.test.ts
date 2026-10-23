@@ -9,14 +9,11 @@ import {
   writeFileSync,
 } from "node:fs";
 import { createServer } from "node:net";
-import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
-  DRIVER_FILE_IDENTITY_KEYS,
-  REQUIRED_LINUX_TOOLS,
   decodeLinuxDescriptor,
   gatedLocalComputer,
   readCuaConnection,
@@ -25,11 +22,6 @@ import {
 } from "./local-computer.ts";
 import { SPAWNED_PROXIES } from "./proxy-paths.ts";
 
-const require = createRequire(import.meta.url);
-const { DRIVER_FILE_IDENTITY_KEYS: ELECTRON_DRIVER_FILE_IDENTITY_KEYS } = require(
-  "../electron/cua-linux.cjs",
-);
-const { REQUIRED_TOOLS: ELECTRON_REQUIRED_TOOLS } = require("../electron/cua-linux-runtime.cjs");
 
 function linuxDescriptor(userData: string, { session = "x11" }: { session?: "x11" | "wayland" } = {}) {
   const binary = join(userData, "cua-driver");
@@ -103,10 +95,6 @@ describe("local computer descriptor contract", () => {
   it("owns the helper's Node mode even when the daemon environment disagrees", () => {
     const gated = gatedLocalComputer({ command: "/trusted/cua-driver", args: ["mcp"], env: { ELECTRON_RUN_AS_NODE: "0" }, platform: "darwin", scope: "local-computer" }, { url: "http://127.0.0.1:1234/control", token: "fixture-token" });
     expect(gated.env.ELECTRON_RUN_AS_NODE).toBe("1");
-  });
-  it("stays synchronized with the Electron producer", () => {
-    expect(DRIVER_FILE_IDENTITY_KEYS).toEqual([...ELECTRON_DRIVER_FILE_IDENTITY_KEYS]);
-    expect(REQUIRED_LINUX_TOOLS).toEqual([...ELECTRON_REQUIRED_TOOLS]);
   });
 });
 

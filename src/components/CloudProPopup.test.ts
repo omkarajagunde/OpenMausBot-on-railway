@@ -6,9 +6,9 @@ import { createElement } from "react";
 import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { CloudAccountState, CloudPlanSnapshot } from "../../electron/cloud-account.mjs";
-import type { CloudOffer } from "../../electron/cloud-home.mjs";
-import { registerDesktopPrefs } from "../../electron/desktop-prefs.mjs";
+import type { CloudAccountState, CloudPlanSnapshot } from "../../shared/client/cloud-account.mjs";
+import type { CloudOffer } from "../../shared/client/cloud-home.mjs";
+import { registerDesktopPrefs } from "../../shared/client/desktop-prefs.mjs";
 import { setLocale } from "@/lib/i18n";
 
 vi.mock("@/components/EngineLibrary", () => ({ engineReady: () => true }));

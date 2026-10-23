@@ -1,6 +1,6 @@
 // Dev-only gallery of the welcome flow's beats, served at /onboarding-preview.html; not in the packaged app.
 import { StrictMode, useEffect, useState } from "react";
-import type { CloudOffer } from "../electron/cloud-home.mjs";
+import type { CloudOffer } from "../shared/client/cloud-home.mjs";
 import { createRoot } from "react-dom/client";
 import { DesktopCapabilitiesProvider } from "@/components/DesktopCapabilities";
 import { WelcomeFlow } from "@/components/onboarding/WelcomeFlow";

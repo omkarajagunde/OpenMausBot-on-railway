@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronRight, FolderPlus, X } from "lucide-react";
-import type { CloudLendingBridge, CloudLendingSnapshot, SharedFolder } from "../../electron/computer-sharing.mjs";
+import type { CloudLendingBridge, CloudLendingSnapshot, SharedFolder } from "../../shared/client/computer-sharing.mjs";
 import { ipcErrorText, listOf } from "@/lib/cloud-send";
 import { activeLocale, t } from "@/lib/i18n";
 import { localizedRelativeTime } from "@/lib/memory";

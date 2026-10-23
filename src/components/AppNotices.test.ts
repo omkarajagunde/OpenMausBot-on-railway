@@ -4,13 +4,13 @@ import vm from "node:vm";
 import { Children, createElement, isValidElement, type EffectCallback, type ReactElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { CloudAccountState, CloudPlanSnapshot } from "../../electron/cloud-account.mjs";
-import type { CloudOffer, CloudTrial } from "../../electron/cloud-home.mjs";
+import type { CloudAccountState, CloudPlanSnapshot } from "../../shared/client/cloud-account.mjs";
+import type { CloudOffer, CloudTrial } from "../../shared/client/cloud-home.mjs";
 import { withTourFinished } from "@/lib/guided-tour";
 import { setLocale } from "@/lib/i18n";
 import { EMPTY_ONBOARDING, LOCAL_VIEWER, type WelcomeViewer } from "@/lib/onboarding";
 import { setPendingIntent } from "@/lib/cloud-intent";
-import { registerDesktopPrefs } from "../../electron/desktop-prefs.mjs";
+import { registerDesktopPrefs } from "../../shared/client/desktop-prefs.mjs";
 
 const f = vi.hoisted(() => ({ values: [] as unknown[], index: 0, effects: [] as EffectCallback[], state: {} as any, updater: null as any, dispatch: null as any, brand: "default" }));
 vi.mock("react", async original => ({ ...await original<typeof import("react")>(),

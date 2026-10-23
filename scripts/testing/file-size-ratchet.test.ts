@@ -17,7 +17,6 @@ const LISTED_FROM = 1000;
 const LINES: Record<string, number> = {
   "server/index.ts": 16924,
   "src/state/store.tsx": 3525,
-  "electron/main.mjs": 3277,
   "server/store.ts": 2450,
   "src/components/Sidebar.tsx": 2317,
   "server/drivers/claude.ts": 2147,
@@ -52,7 +51,7 @@ const LINES: Record<string, number> = {
 function sourceFiles(): string[] {
   const out = execFileSync("git", ["ls-files", "server", "shared", "src", "scripts", "evals", "electron", "companion"], { cwd: ROOT, encoding: "utf8" });
   return out.split("\n").filter((file) => /\.(ts|tsx|mjs|cjs)$/.test(file))
-    .filter((file) => !file.includes(".test.") && !file.includes("/testing/") && !file.includes("goldens") && !file.startsWith("electron/vendor/"));
+    .filter((file) => !file.includes(".test.") && !file.includes("/testing/") && !file.includes("goldens"));
 }
 
 const count = (file: string) => readFileSync(new URL(file, ROOT), "utf8").split("\n").length - 1;

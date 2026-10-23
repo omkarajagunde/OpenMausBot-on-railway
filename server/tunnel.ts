@@ -13,22 +13,22 @@ import {
   resolveCompanionControlPlaneURL,
   type CompanionAccountService,
   type CredentialDocument,
-} from "../electron/companion-account-service.mjs";
+} from "../shared/client/companion-account-service.mjs";
 import {
   cleanupCompanionOriginEndpoint,
   createCompanionOriginEndpoint,
   MANAGED_COMPANION_ORIGIN_PORT,
   type CompanionOriginEndpoint,
-} from "../electron/companion-origin-gateway.mjs";
-import { ControlPlaneError, createControlPlaneClient } from "../electron/control-plane-client.mjs";
+} from "../shared/client/companion-origin-gateway.mjs";
+import { ControlPlaneError, createControlPlaneClient } from "../shared/client/control-plane-client.mjs";
 import {
   createManagedCompanionTunnel,
   managedCompanionTunnelAccess,
   resolveCloudflaredBinary,
   type ManagedTunnelAccess,
   type ManagedTunnelState,
-} from "../electron/managed-companion-tunnel.mjs";
-import { createSecureCredentialState } from "../electron/secure-credential-state.mjs";
+} from "../shared/client/managed-companion-tunnel.mjs";
+import { createSecureCredentialState } from "../shared/client/secure-credential-state.mjs";
 import { writeFileAtomic } from "./atomic.ts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -208,7 +208,7 @@ export function prepareEntry(here = HERE): string {
 export function guardianEntry(here = HERE): string | null {
   const bundled = join(here, "tunnel-guardian.js");
   if (existsSync(bundled)) return bundled;
-  const source = resolve(here, "..", "electron", "managed-companion-guardian-main.mjs");
+  const source = resolve(here, "..", "shared", "client", "managed-companion-guardian-main.mjs");
   return existsSync(source) ? source : null;
 }
 

@@ -1,7 +1,7 @@
 import { Children, createElement, isValidElement, type EffectCallback, type ReactElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { ManagedDesktopBridge, ManagedDesktopState } from "../../electron/managed-desktop.mjs";
+import type { ManagedDesktopBridge, ManagedDesktopState } from "../../shared/client/managed-desktop.mjs";
 import type { WorkspaceBackupSummary } from "../../shared/workspace-backup";
 import { setLocale } from "@/lib/i18n";
 import { WORKSPACE_RESTORE_MARKER } from "@/lib/workspace-backup-client";

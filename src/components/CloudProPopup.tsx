@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Check, Crown, X } from "lucide-react";
-import type { CloudAccountState, CloudPlanSnapshot } from "../../electron/cloud-account.mjs";
-import type { CloudOffer } from "../../electron/cloud-home.mjs";
-import type { DesktopNoticesBridge, DesktopNoticesState } from "../../electron/desktop-prefs.mjs";
+import type { CloudAccountState, CloudPlanSnapshot } from "../../shared/client/cloud-account.mjs";
+import type { CloudOffer } from "../../shared/client/cloud-home.mjs";
+import type { DesktopNoticesBridge, DesktopNoticesState } from "../../shared/client/desktop-prefs.mjs";
 import { analyticsChoiceKnown, identifyEmail, track } from "@/lib/analytics";
 import { buyOfferAllowed, cloudIntroView, cloudPlanLabel, cloudPlanLine, cloudPlanView, moneyBackLine, trialRunning, usd, type CloudPlanView, type CloudSource } from "@/lib/cloud-plan";
 import { t } from "@/lib/i18n";

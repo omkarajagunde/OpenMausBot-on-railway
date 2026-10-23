@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Building2, Check } from "lucide-react";
-import type { ManagedDesktopBridge, ManagedDesktopState } from "../../../../electron/managed-desktop.mjs";
+import type { ManagedDesktopBridge, ManagedDesktopState } from "../../../../shared/client/managed-desktop.mjs";
 import { brand } from "@/lib/brand";
 import { t } from "@/lib/i18n";
 import { companyModelCount, DEFAULT_ADMIN_ORIGIN } from "@/lib/onboarding";

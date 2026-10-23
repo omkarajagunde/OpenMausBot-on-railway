@@ -7,7 +7,7 @@ import { createRequire } from "node:module";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterAll, beforeAll, expect, it, vi } from "vitest";
-import { WELCOME_VERSION } from "../electron/onboarding-record.mjs";
+import { WELCOME_VERSION } from "../shared/client/onboarding-record.mjs";
 import { launchVerificationServer, runControlOmb } from "../scripts/control-omb.ts";
 import { startBrokerFake, type BrokerFake } from "./testing/broker-fake.ts";
 

@@ -1,7 +1,7 @@
 // What either page says about the one-time move to My Cloud (electron/one-home.mjs), and what arrived, in words.
-import type { CloudSendCounts } from "../../electron/cloud-send.mjs";
-import type { OneHomeCounts, OneHomeView } from "../../electron/one-home.mjs";
-import type { TeamMoveView } from "../../electron/team-move.mjs";
+import type { CloudSendCounts } from "../../shared/client/cloud-send.mjs";
+import type { OneHomeCounts, OneHomeView } from "../../shared/client/one-home.mjs";
+import type { TeamMoveView } from "../../shared/client/team-move.mjs";
 import type { LocaleKey } from "@/locales";
 import { activeLocale, t } from "@/lib/i18n";
 

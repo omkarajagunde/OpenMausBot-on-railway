@@ -1,8 +1,8 @@
 import { Children, createElement, isValidElement, type EffectCallback, type ReactElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import type { CloudAccountState } from "../../electron/cloud-account.mjs";
-import type { CloudOffer } from "../../electron/cloud-home.mjs";
+import type { CloudAccountState } from "../../shared/client/cloud-account.mjs";
+import type { CloudOffer } from "../../shared/client/cloud-home.mjs";
 
 const f = vi.hoisted(() => ({ values: [] as unknown[], index: 0, effects: [] as EffectCallback[], dispatch: null as any }));
 vi.mock("react", async original => ({ ...await original<typeof import("react")>(),

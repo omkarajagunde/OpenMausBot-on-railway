@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { CloudAccountState } from "../../electron/cloud-account.mjs";
+import type { CloudAccountState } from "../../shared/client/cloud-account.mjs";
 import { activeLocale, t } from "@/lib/i18n";
 import { cloudPlanView } from "@/lib/cloud-plan";
 import { engineSignedOut } from "@/lib/failed-turn";

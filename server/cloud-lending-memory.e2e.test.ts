@@ -9,7 +9,7 @@ import { connect } from "node:net";
 import { createInterface } from "node:readline";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { afterAll, beforeAll, expect, it } from "vitest";
-import { createComputerSharing } from "../electron/computer-sharing.mjs";
+import { createComputerSharing } from "../shared/client/computer-sharing.mjs";
 import { cloudPairingSignature } from "./cloud-home.ts";
 import { removeTempDir, waitForExit } from "./testing/cleanup.ts";
 import { markLeftBehind } from "./testing/cloud-left-behind.ts";

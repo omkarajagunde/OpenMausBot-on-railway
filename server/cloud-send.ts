@@ -3,8 +3,8 @@
 // and which bots its vaults are kept to.
 import { createHash } from "node:crypto";
 
-import { BOT_PARTS, EMPTY, PICTURE_PART, itemKey } from "../electron/cloud-send-parts.mjs";
-import type { SendKind } from "../electron/cloud-send-parts.mjs";
+import { BOT_PARTS, EMPTY, PICTURE_PART, itemKey } from "../shared/client/cloud-send-parts.mjs";
+import type { SendKind } from "../shared/client/cloud-send-parts.mjs";
 import type { LoginBots } from "../shared/logins.ts";
 import { canonicalJson } from "../shared/package-format.ts";
 import type { BotRecord } from "./store.ts";

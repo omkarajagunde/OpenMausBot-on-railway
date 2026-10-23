@@ -2,7 +2,7 @@
 // through a link.
 import { lstatSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { validWirePath } from "../electron/cloud-sync-rules.mjs";
+import { validWirePath } from "../shared/client/cloud-sync-rules.mjs";
 
 export class SyncPathError extends Error {}
 

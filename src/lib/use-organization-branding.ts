@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import type { ManagedDesktopState } from "../../electron/managed-desktop.mjs";
-import { parseOrganizationBranding } from "../../electron/organization-branding.mjs";
+import type { ManagedDesktopState } from "../../shared/client/managed-desktop.mjs";
+import { parseOrganizationBranding } from "../../shared/client/organization-branding.mjs";
 
 /** Native enrollment only: never apply this computer's branding to a remote workspace. */
 export function useOrganizationBranding() {

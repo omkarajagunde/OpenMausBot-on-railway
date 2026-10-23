@@ -1,6 +1,6 @@
 // Screen 6 until more Clouds per account are sold: a calm word and the way to the one there is, never an error box.
 import { Loader2 } from "lucide-react";
-import type { CloudColor } from "../../../electron/cloud-buy.mjs";
+import type { CloudColor } from "../../../shared/client/cloud-buy.mjs";
 import { t } from "@/lib/i18n";
 import { CloudTile, Heading } from "./parts";
 

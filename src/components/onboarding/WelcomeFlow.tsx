@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
-import type { CloudOffer } from "../../../electron/cloud-home.mjs";
+import type { CloudOffer } from "../../../shared/client/cloud-home.mjs";
 import { MausAvatar } from "@/components/Avatar";
 import { useDesktopCapabilities } from "@/components/DesktopCapabilities";
 import { engineReady } from "@/components/EngineLibrary";

@@ -1,6 +1,5 @@
 # pnpm 11 reads allowBuilds, pnpm 10 reads onlyBuiltDependencies — keep both
 # so either version runs the postinstalls this project actually needs.
-# A packages list is required for `pnpm list` (electron-builder's collector).
 packages:
   - "."
   - "apps/docs"
@@ -13,11 +12,8 @@ supportedArchitectures:
     - arm64
     - x64
 allowBuilds:
-  electron: true # postinstall downloads the Electron dist
   esbuild: true # postinstall validates the platform binary
-  electron-winstaller: false # unused — Windows builds ship NSIS
 onlyBuiltDependencies:
-  - electron
   - esbuild
 # mermaid 12.1 still allows dompurify 3.4.13. Force the patched release.
 overrides:

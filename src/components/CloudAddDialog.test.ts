@@ -1,9 +1,9 @@
 import { Children, createElement, isValidElement, type EffectCallback, type ReactElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { CloudAccountState, CloudCheckoutResult } from "../../electron/cloud-account.mjs";
-import type { CloudCredit, CloudOffer, CloudTeam, CloudTrial } from "../../electron/cloud-home.mjs";
-import { parseCloudOffer } from "../../electron/cloud-home.mjs";
+import type { CloudAccountState, CloudCheckoutResult } from "../../shared/client/cloud-account.mjs";
+import type { CloudCredit, CloudOffer, CloudTeam, CloudTrial } from "../../shared/client/cloud-home.mjs";
+import { parseCloudOffer } from "../../shared/client/cloud-home.mjs";
 import { setLocale } from "@/lib/i18n";
 
 // useState by call order; useEffect as React runs it: again only when its dependencies change, after the last one's cleanup.

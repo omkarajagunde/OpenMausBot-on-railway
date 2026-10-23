@@ -2,7 +2,7 @@
 import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import type { CloudFilesState } from "../../electron/cloud-sync.mjs";
+import type { CloudFilesState } from "../../shared/client/cloud-sync.mjs";
 import { setLocale } from "@/lib/i18n";
 import type { SidebarDensity } from "@/lib/sidebar-preferences";
 import { BotEditorStore, initialState, type AppState, type useStore } from "@/state/store";

@@ -1,7 +1,7 @@
 // The phc_ token is a write-only public key, safe to ship in the client.
 // posthog-js loads on demand: a static import would put ~240 kB into the startup bundle.
 import type { CaptureResult, PostHog } from "posthog-js";
-import { DESKTOP_PORTS } from "../../electron/desktop-ports.mjs";
+import { DESKTOP_PORTS } from "../../shared/client/desktop-ports.mjs";
 import { appVersion } from "@/lib/app-links";
 
 const TOKEN = "phc_m2hP39w8y2gLPvHgDvSXAu6xcZ3agjf4ruL56rGcMZEe";

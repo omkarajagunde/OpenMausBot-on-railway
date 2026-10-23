@@ -3,7 +3,7 @@
 import { BlockList, isIP } from "node:net";
 import { z } from "zod";
 
-import { addressClass, ownAddresses, type AddressClass } from "../../../electron/egress-addresses.mjs";
+import { addressClass, ownAddresses, type AddressClass } from "../../../shared/client/egress-addresses.mjs";
 
 export { addressClass, ownAddresses, type AddressClass };
 

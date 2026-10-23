@@ -4,7 +4,7 @@ import { isIP, type Socket } from "node:net";
 import type { IncomingMessage } from "node:http";
 import { WebSocketServer, type WebSocket } from "ws";
 
-import { createLinkMux, LINK_ASLEEP, LINK_ENDED, MAX_CHUNK, type LinkMux, type LinkOpened } from "../electron/device-link-protocol.mjs";
+import { createLinkMux, LINK_ASLEEP, LINK_ENDED, MAX_CHUNK, type LinkMux, type LinkOpened } from "../shared/client/device-link-protocol.mjs";
 
 const PING_MS = 10_000;
 /** A page opens many connections: the computer is marked used at most this often. */

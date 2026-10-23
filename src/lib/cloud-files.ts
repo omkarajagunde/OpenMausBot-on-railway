@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { CloudFilesBridge, CloudFilesState } from "../../electron/cloud-sync.mjs";
+import type { CloudFilesBridge, CloudFilesState } from "../../shared/client/cloud-sync.mjs";
 
 /** Files lives in this computer's own window: a companion connected to another computer has none. */
 export function cloudFilesBridge(): CloudFilesBridge | undefined {

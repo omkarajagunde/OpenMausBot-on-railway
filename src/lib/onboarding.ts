@@ -1,4 +1,4 @@
-import { ONBOARDING_CLOUD_HINT, WELCOME_VERSION } from "../../electron/onboarding-record.mjs";
+import { ONBOARDING_CLOUD_HINT, WELCOME_VERSION } from "../../shared/client/onboarding-record.mjs";
 
 export interface OnboardingStatus {
   completedAt: string;

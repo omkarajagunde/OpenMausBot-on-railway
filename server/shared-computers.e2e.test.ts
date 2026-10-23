@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { createInterface } from "node:readline";
 import { afterAll, beforeAll, expect, it, vi } from "vitest";
 import { launchVerificationServer, type VerificationServer } from "../scripts/control-omb.ts";
-import { createComputerSharing, type SharedFolder } from "../electron/computer-sharing.mjs";
+import { createComputerSharing, type SharedFolder } from "../shared/client/computer-sharing.mjs";
 import { sessionCookieName } from "./request-auth.ts";
 
 let fixture: VerificationServer;

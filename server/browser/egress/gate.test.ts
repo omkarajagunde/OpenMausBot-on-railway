@@ -6,7 +6,7 @@ import * as NodeOS from "node:os";
 import type { NetworkInterfaceInfo } from "node:os";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import type { LinkOpened } from "../../../electron/device-link-protocol.mjs";
+import type { LinkOpened } from "../../../shared/client/device-link-protocol.mjs";
 import { gateChromeFlags, openGate, resolveTarget, type EgressGate, type GateTarget } from "./gate.ts";
 import { ownAddresses, refusalFor, type EgressRules, type Refusal } from "./policy.ts";
 

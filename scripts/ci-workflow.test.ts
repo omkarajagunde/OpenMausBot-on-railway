@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { parse } from "yaml";
 
 const workflow = parse(readFileSync(new URL("../.github/workflows/ci.yml", import.meta.url), "utf8"));
-const requiredRuntimeJobs = ["vitest", "behavior-evals", "packaged-server", "windows-cua", "electron-smokes"];
+const requiredRuntimeJobs = ["vitest", "behavior-evals", "packaged-server"];
 
 function runGate(needs: Record<string, unknown>) {
   // Execute the actual gate, not a duplicate of its success/failure logic.
@@ -72,56 +72,6 @@ describe("CI concurrency", () => {
       os: "${{ fromJSON(needs.static.outputs.vitest_os) }}", shard: [1, 2, 3, 4],
     });
     expect(workflow.jobs.vitest["timeout-minutes"]).toBe("${{ matrix.os == 'ubuntu-latest' && 30 || 45 }}");
-  });
-
-  it("keeps each PR to one macOS job", () => {
-    const macosJobs = Object.entries(workflow.jobs as Record<string, { "runs-on": string; strategy?: { matrix?: { os?: unknown } } }>)
-      .filter(([, job]) => job["runs-on"] === "macos-latest" || JSON.stringify(job.strategy?.matrix?.os ?? "").includes("macos"))
-      .map(([name]) => name);
-    expect(macosJobs.sort()).toEqual(["electron-smokes"]);
-    const smokes = workflow.jobs["electron-smokes"].steps.map((step: { run?: string }) => step.run);
-    expect(smokes).toContain("pnpm test:packaged-server");
-  });
-
-  it("checks delegated approval modes on the receipt's work thread, not the selected sibling", () => {
-    const smoke = readFileSync(new URL("./smoke-approval-modes.cjs", import.meta.url), "utf8");
-    const delegated = smoke.slice(smoke.indexOf("const peerTarget ="), smoke.indexOf("const customCalls ="));
-    expect(delegated).toContain("const peerWorkThreadId = peerResponse.body.receipts[0].threadId;");
-    expect(delegated).toContain("assert.notEqual(peerWorkThreadId, peerThread.threadId);");
-    expect(delegated).toContain("task.threadId === peerWorkThreadId)?.busy === false");
-    expect(delegated).toContain("/tasks/${peerWorkThreadId}`");
-    expect(delegated).toContain("assert.equal(askPeerResponse.body.receipts[0].threadId, peerWorkThreadId);");
-    expect(delegated).toContain("/api/threads/${peerWorkThreadId}/messages");
-    expect(delegated).toContain("/api/threads/${peerWorkThreadId}/respond");
-    expect(delegated).toContain("const customThreadId = customResponse.body.receipts[0].threadId;");
-    expect(delegated).toContain("/api/threads/${customThreadId}/messages");
-    expect(delegated).toContain("/api/threads/${customThreadId}/respond");
-    expect(delegated).not.toContain("pendingCard((await api(\"/api/bots\"))");
-    expect(delegated).not.toContain("/tasks/${peerThread.threadId}`");
-  });
-
-  it("makes a release wait for its commit's CI gate before any draft", () => {
-    const release = parse(readFileSync(new URL("../.github/workflows/release.yml", import.meta.url), "utf8"));
-    expect(release.jobs.assemble.needs).toContain("ci");
-    expect(release.jobs.ci.needs).toBe("prepare");
-    expect(release.jobs.ci.permissions).toEqual({ actions: "write", contents: "write" });
-    const wait = release.jobs.ci.steps.find((step: { run?: string }) => step.run === "node scripts/release-ci.mjs");
-    expect(wait.if).toBe("${{ !inputs.ship_without_ci }}");
-    expect(wait.env).toMatchObject({ SHA: "${{ needs.prepare.outputs.sha }}", VERSION: "${{ needs.prepare.outputs.version }}" });
-    // The script reads ci.yml's gate by its job name.
-    expect(readFileSync(new URL("./release-ci.mjs", import.meta.url), "utf8")).toContain(`job.name === "${workflow.jobs.gate.name}"`);
-    // The release lane is a branch, so its runs get their own concurrency group.
-    expect(workflow.on).toHaveProperty("workflow_dispatch");
-  });
-
-  it("checks out every module the release gate imports", () => {
-    const release = parse(readFileSync(new URL("../.github/workflows/release.yml", import.meta.url), "utf8"));
-    const checkout = release.jobs.ci.steps.find((step: { uses?: string }) => step.uses?.startsWith("actions/checkout@"));
-    const sparse = (checkout.with["sparse-checkout"] as string).split("\n").map((line) => line.trim()).filter(Boolean);
-    const imports = [...readFileSync(new URL("./release-ci.mjs", import.meta.url), "utf8").matchAll(/^import .* from "\.\/([^"]+)";$/gm)]
-      .map((match) => `scripts/${match[1]}`);
-    expect(imports).toContain("scripts/ci-scope.mjs");
-    expect(sparse.sort()).toEqual(["scripts/release-ci.mjs", ...imports].sort());
   });
 
   it("lets push scoping read the previous commit's CI, and nothing more", () => {
@@ -205,11 +155,4 @@ describe("CI concurrency", () => {
     }
   });
 
-  it("keeps the redundant Windows workflow available only for manual debugging", () => {
-    const smoke = parse(readFileSync(new URL("../.github/workflows/shared-terminal-smoke.yml", import.meta.url), "utf8"));
-    expect(smoke.on).toEqual({ workflow_dispatch: null });
-    const commands = smoke.jobs.windows.steps.map((step: { run?: string }) => step.run);
-    expect(commands).toContain("node --test electron/shared-computer-access.node-test.mjs");
-    expect(commands).toContain("pnpm exec vitest run server/shared-computers.e2e.test.ts");
-  });
 });

@@ -75,7 +75,6 @@ jobs:
         run: pnpm i18n:check
       - run: pnpm typecheck
       - run: pnpm lint
-      - run: pnpm check:electron
       - name: production UI build
         run: pnpm exec vite build
 
@@ -114,11 +113,6 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Prepare Electron test runtime
-        # Electron lazily downloads its runtime on first import. Resolve it
-        # before Vitest starts so a cold download cannot consume the fixture
-        # timeout.
-        run: node --input-type=commonjs -e "require('electron')"
       - name: Run tests
         # The github-actions reporter turns each failure into an annotation
         # on the PR, so the failing test and its assertion are readable
@@ -136,9 +130,9 @@ jobs:
         env:
           OMB_VITEST_RETRY_LOG: ${{ runner.temp }}/vitest-retries.jsonl
         run: node scripts/testing/ci-retry-summary.mjs
-      - name: Broker and Electron unit tests
+      - name: Broker and client unit tests
         if: matrix.shard == 1
-        run: pnpm broker:test && pnpm test:electron
+        run: pnpm broker:test && pnpm test:client
 
   behavior-evals:
     needs: static
@@ -211,65 +205,10 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm test:packaged-server
 
-  windows-cua:
-    needs: static
-    if: needs.static.outputs.runtime == 'true'
-    name: Windows CUA host smoke
-    runs-on: windows-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: pnpm/action-setup@ff378ebe6b225b0680b81c1ad4498ae0d1d3a5e3 # v6.0.10
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: 24
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - name: Smoke the staged Windows CUA host (no computer actions)
-        timeout-minutes: 5
-        run: pnpm build:cua:win && pnpm smoke:cua-win
-
-  electron-smokes:
-    needs: static
-    if: needs.static.outputs.runtime == 'true'
-    # Real Electron utility processes against disposable homes and fake CLIs.
-    # Never the live app. Each script prints its own evidence lines. Every
-    # PR's macOS checks live in this one job: macOS runners are the scarce
-    # ones, and each extra job pays its own queue wait and install.
-    name: macOS smokes (packaged server + Electron)
-    runs-on: macos-latest
-    timeout-minutes: 25
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: pnpm/action-setup@ff378ebe6b225b0680b81c1ad4498ae0d1d3a5e3 # v6.0.10
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: 24
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - name: Prepare Electron test runtime
-        run: node --input-type=commonjs -e "require('electron')"
-      - name: Packaged server smoke (macOS)
-        # Builds dist-server/ and runs a copy of it outside the repo; the
-        # phone-relay smoke below forks the same dist-server/index.js.
-        run: pnpm test:packaged-server
-      - name: Verify native approval mode transitions
-        run: pnpm exec electron scripts/smoke-approval-modes.cjs
-      - name: Verify app permissions and guarded display capture
-        run: node scripts/smoke-app-permissions.mjs
-      - name: Verify chat app frames stay sealed
-        run: node scripts/smoke-app-frames.mjs --engagement
-      - name: Verify paired phone authorization against packaged harness
-        # Forks dist-server/index.js, built by the packaged server step.
-        run: pnpm build:companion && pnpm exec electron scripts/smoke-phone-relay-auth.cjs
-      - name: Verify Send to My Cloud's login handoff over the real utility port
-        # Forks dist-server/index.js, built by the packaged server step.
-        run: pnpm exec electron scripts/smoke-login-handoff.cjs
-
   gate:
     # One aggregation, not three queued runners doing the same check.
     name: CI
-    needs: [static, vitest, behavior-evals, packaged-server, windows-cua, electron-smokes]
+    needs: [static, vitest, behavior-evals, packaged-server]
     # Still report failed/skipped dependencies, but don't keep a superseded
     # workflow alive just to schedule its summary jobs.
     if: ${{ !cancelled() }}
@@ -496,75 +435,6 @@ jobs:
         # One file at a time: a runner's first Chrome launch is slow (on Windows it waits for a scan of the binary), and two
         # at once ran the identity probe past its 30 s.
         run: pnpm exec vitest run scripts/testing/browser-identity.e2e.test.ts scripts/testing/browser-passkey.e2e.test.ts --no-file-parallelism
-
-  package-linux:
-    needs: static
-    if: needs.static.outputs.runtime == 'true'
-    name: package + smoke (Ubuntu 24.04 x64)
-    runs-on: ubuntu-24.04
-    timeout-minutes: 25
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: pnpm/action-setup@ff378ebe6b225b0680b81c1ad4498ae0d1d3a5e3 # v6.0.10
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: 24
-          cache: pnpm
-      - name: Install package validation and native smoke tools
-        run: >-
-          sudo apt-get update && sudo apt-get install -y
-          at-spi2-core dbus-x11 desktop-file-utils libxi6 libxkbcommon0 squashfs-tools x11-utils xdotool xvfb
-      - run: pnpm install --frozen-lockfile
-      - name: Stage the pinned CUA runtime
-        run: pnpm build:cua:linux
-      - name: Prove overlay-free X11 input routing
-        run: dbus-run-session -- xvfb-run -a pnpm smoke:cua-x11-input
-      - name: Package from the verified offline CUA stage
-        run: pnpm package:linux:offline
-      - run: node scripts/verify-linux-package.mjs
-      - name: Match a normal Ubuntu package parent on the ephemeral runner
-        run: |
-          test ! -L /opt
-          test "$(stat -c '%F %U:%G' /opt)" = "directory root:root"
-          case "$(stat -c '%a' /opt)" in
-            755) ;;
-            775|777) sudo chmod 0755 /opt ;;
-            *) echo "Unexpected /opt mode: $(stat -c '%a' /opt)" >&2; exit 1 ;;
-          esac
-          test "$(stat -c '%U:%G %a' /opt)" = "root:root 755"
-      - name: Reproduce and verify an in-place DEB upgrade
-        run: |
-          deb=(release/*.deb)
-          test "${#deb[@]}" -eq 1
-          sudo --preserve-env=CI,RUNNER_TEMP node scripts/smoke-deb-upgrade.mjs "${deb[0]}"
-      - name: Configure Chromium sandbox for the unpacked app
-        run: |
-          sudo chown root:root release/linux-unpacked/chrome-sandbox
-          sudo chmod 4755 release/linux-unpacked/chrome-sandbox
-          test "$(stat -c '%U:%G %a' release/linux-unpacked/chrome-sandbox)" = "root:root 4755"
-      - name: Verify the installed browser with Ubuntu sandbox restrictions
-        run: node scripts/smoke-browser-bundle.mjs --resources /opt/OpenMausBot/resources
-      - name: Launch packaged app and verify lifecycle
-        env:
-          OMB_KEEP_SMOKE_DIR: "1"
-          OMB_SMOKE_INSTALLED_DEB: "1"
-        run: pnpm smoke:linux-package
-      - name: Remove the installed upgrade fixture
-        if: always()
-        run: sudo dpkg --purge openmausbot || true
-      - name: Upload smoke diagnostics on failure
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        if: failure()
-        with:
-          name: openmausbot-ubuntu-smoke-diagnostics
-          path: |
-            /tmp/omb-linux-smoke-*
-            /tmp/omb-linux-smoke-runtime-*
-          if-no-files-found: warn
-          include-hidden-files: true
-          retention-days: 7
 
   browser-driver:
     needs: static

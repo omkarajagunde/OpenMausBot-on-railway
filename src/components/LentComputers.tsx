@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Laptop } from "lucide-react";
 
-import type { PageLending } from "../../electron/cloud-lending-ipc.mjs";
+import type { PageLending } from "../../shared/client/cloud-lending-ipc.mjs";
 import { activeLocale, t } from "@/lib/i18n";
 import type { LocaleKey } from "@/locales";
 import { localizedRelativeTime } from "@/lib/memory";

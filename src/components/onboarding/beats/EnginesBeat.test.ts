@@ -2,7 +2,7 @@
 import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { ManagedDesktopBridge } from "../../../../electron/managed-desktop.mjs";
+import type { ManagedDesktopBridge } from "../../../../shared/client/managed-desktop.mjs";
 import { setLocale } from "@/lib/i18n";
 import type { InstanceInfo } from "@/state/store";
 

@@ -1,5 +1,5 @@
 import { Check, Cloud } from "lucide-react";
-import type { CloudOffer } from "../../electron/cloud-home.mjs";
+import type { CloudOffer } from "../../shared/client/cloud-home.mjs";
 import { cloudIntroView } from "@/lib/cloud-plan";
 import { t } from "@/lib/i18n";
 import { NoticeCard, NotNowButton, PRIMARY_BUTTON } from "./NoticeCard";

@@ -15,7 +15,7 @@ import { t } from "@/lib/i18n";
 import { hintSeen, type OnboardingStatus } from "@/lib/onboarding";
 import { useShowThreads } from "@/lib/thread-preferences";
 import type { LocaleKey } from "@/locales";
-import type { CloudSendNotice } from "../../../electron/cloud-send.mjs";
+import type { CloudSendNotice } from "../../../shared/client/cloud-send.mjs";
 import { openBot, useStore } from "@/state/store";
 import { useCloudName } from "./parts";
 import { WelcomeBring, type BringOutcome } from "./WelcomeBring";

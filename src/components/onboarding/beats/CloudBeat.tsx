@@ -2,8 +2,8 @@
 // over the welcome (which goes on when the sheet closes); Not now goes on at once.
 import { useEffect, useState } from "react";
 import { Check } from "lucide-react";
-import type { CloudAccountState } from "../../../../electron/cloud-account.mjs";
-import type { CloudOffer } from "../../../../electron/cloud-home.mjs";
+import type { CloudAccountState } from "../../../../shared/client/cloud-account.mjs";
+import type { CloudOffer } from "../../../../shared/client/cloud-home.mjs";
 import { CloudMascotScene } from "@/components/cloud-buy/CloudMascotScene";
 import { track } from "@/lib/analytics";
 import { brandStatus } from "@/lib/brand";

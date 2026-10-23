@@ -1,7 +1,7 @@
 // Email sign-in through the OpenMausBot control plane: the code exchange is server-side, so a browser only talks to this
 // server, and a server with an empty allow-list does not expose the routes. The result is an ordinary local session.
-import { resolveCompanionControlPlaneURL } from "../electron/companion-account-service.mjs";
-import { ControlPlaneError, createControlPlaneClient, normalizeAccountEmail, type ControlPlaneClient } from "../electron/control-plane-client.mjs";
+import { resolveCompanionControlPlaneURL } from "../shared/client/companion-account-service.mjs";
+import { ControlPlaneError, createControlPlaneClient, normalizeAccountEmail, type ControlPlaneClient } from "../shared/client/control-plane-client.mjs";
 import type { Scope } from "./sessions.ts";
 
 /** Who may sign in. `a@b.com` is that address; `@b.com` is everyone at b.com. */

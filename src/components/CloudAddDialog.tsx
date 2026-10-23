@@ -2,9 +2,9 @@
 // follows its own session, never the return. The emailed code's attempt, the token and the checkout page stay in main.
 import { useEffect, useState, type ReactNode } from "react";
 import { X } from "lucide-react";
-import type { CloudColor } from "../../electron/cloud-buy.mjs";
-import type { CloudAccountState, CloudCheckoutOutcome } from "../../electron/cloud-account.mjs";
-import type { CloudOffer } from "../../electron/cloud-home.mjs";
+import type { CloudColor } from "../../shared/client/cloud-buy.mjs";
+import type { CloudAccountState, CloudCheckoutOutcome } from "../../shared/client/cloud-account.mjs";
+import type { CloudOffer } from "../../shared/client/cloud-home.mjs";
 import { track } from "@/lib/analytics";
 import { cn } from "@/lib/cn";
 import { cloudColor, cloudNameShown, DEFAULT_CLOUD_COLOR } from "@/lib/cloud-look";

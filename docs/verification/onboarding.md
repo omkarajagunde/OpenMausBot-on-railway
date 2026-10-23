@@ -76,9 +76,7 @@ write, and the note stayed away after a reload. The engines beat was mounted fro
 then connecting with the code, then connected. `begin` ran once, with the
 default Admin. Screenshots are in `.omb-scratch/verify-evidence/onboarding/`.
 
-Not covered here: the real Electron preload bridge and a real Admin enrolment
-(see [organization connection](organization-settings.md), not rerun for this
-change), and a real hosted tenant's browser. The hosted beat set was rendered
+Not covered here: a real Admin enrolment and a real hosted tenant's browser. The hosted beat set was rendered
 from a temporary preview entry, not reached through a hosted sign-in.
 
 ## A new Cloud's welcome
@@ -105,10 +103,8 @@ Midnight and Daylight at 1280×860, 1024×760 and 390×844, the bring and engine
 steps in the other seven skins, and
 the setup card in short beside Routines. Steps finished there are written to
 the fixture's onboarding record; the record can be cleared with
-`PUT /api/config` (`{"onboarding":{"hintsSeen":[]}}`). The real move and the
-desktop's preload bridge are not exercised here; they are covered by
-`server/one-home.e2e.test.ts` and
-`src/components/cloud-welcome/CloudWelcome.test.ts`.
+`PUT /api/config` (`{"onboarding":{"hintsSeen":[]}}`). The real move is not exercised here;
+`src/components/cloud-welcome/CloudWelcome.test.ts` covers the welcome.
 
 ## Bring what you already use (Oct 16 2026)
 

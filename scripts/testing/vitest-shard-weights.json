@@ -185,7 +185,6 @@
   "server/openai-boat.e2e.test.ts": 34,
   "server/openai-compat-vm.e2e.test.ts": 10,
   "server/openai-tools.e2e.test.ts": 34,
-  "server/opencode-provider-keys.e2e.test.ts": 5,
   "server/opencode-variants.e2e.test.ts": 1,
   "server/org-library.e2e.test.ts": 4,
   "server/org-library.test.ts": 33,

@@ -42,10 +42,6 @@ real `BrowserRuntime` and then through the real server and a scripted turn:
    `GET /api/threads/ID/evidence.tar` answer for the conversation, and
    deleting the bot deletes its steps.
 
-`scripts/smoke-browser-bundle.mjs` checks the relay contract on each packaged
-engine (macOS, Linux, the Windows build): relayed console, errors, failed
-requests, a ref's box and a screenshot after an MCP open.
-
 ## By hand
 
 1. Launch the [live browser fixture](browser-live.md). In Pepper's settings,

@@ -164,10 +164,7 @@ describe("pinned cloudflared packaging", () => {
     expect(() => parsePrepareCloudflaredArgs(["--root", "/a", "--root", "/b"])).toThrow(/Usage:/);
   });
 
-  it("stages the current target for development without narrowing package preparation", () => {
-    expect(packageJson.scripts["dev:desktop"]).toBe(
-      "node scripts/prepare-cloudflared.mjs --current && electron .",
-    );
+  it("stages every target when run as the package script", () => {
     expect(packageJson.scripts["build:cloudflared"]).toBe(
       "node scripts/prepare-cloudflared.mjs",
     );

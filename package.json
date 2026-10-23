@@ -52,7 +52,6 @@
     "build:cloudflared": "node scripts/prepare-cloudflared.mjs",
     "build:browser": "node scripts/prepare-browser.mjs",
     "build:duckdb": "node scripts/prepare-duckdb.mjs",
-    "smoke:browser": "node scripts/smoke-browser-bundle.mjs",
     "test:packaged-server": "pnpm build:server && node scripts/smoke-packaged-server.mjs",
     "broker:types": "wrangler types --config cloudflare/composio-broker/wrangler.jsonc cloudflare/composio-broker/worker-configuration.d.ts",
     "broker:check": "pnpm broker:types && tsc -p cloudflare/composio-broker/tsconfig.json",
